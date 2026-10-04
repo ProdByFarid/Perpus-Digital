@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Perpustakaan Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="active"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <div>
+                <h4>{{ user.username }}</h4>
+                <p>Anggota</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>Nama / Anggota</h4>
+                <h1>Selamat Datang, {{ user.username }}</h1>
+                <p>Siap menemukan bacaan baru hari ini?</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
+                <!-- Tambahan tombol logout biar mudah -->
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="hero-banner">
+            <h3>Perpustakaan Digital</h3>
+            <h2>Temukan ide baru,<br><span>satu halaman</span> setiap hari.</h2>
+            <p>Temukan ribuan ebook, lanjutkan bacaan, simpan wishlist, dan akses artikel literasi dalam satu aplikasi yang cepat dan mudah digunakan.</p>
+            
+            <a href="{% url 'katalog' %}" class="btn-katalog">Jelajahi Katalog <i class="fas fa-arrow-right"></i></a>
+
+            <div class="hero-decoration">
+                <i class="fas fa-book-open"></i>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" placeholder="🔍 Cari judul atau penulis... (Tekan / untuk mencari)">
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card c-green">
+                <h4>Sedang dipinjam</h4>
+                <h2>{{ sedang_dipinjam }}</h2>
+                <p>buku aktif</p>
+                <i class="far fa-bookmark"></i>
+            </div>
+            <div class="stat-card c-blue">
+                <h4>Total Dibaca</h4>
+                <h2>{{ total_dibaca }}</h2>
+                <p>buku selesai</p>
+            </div>
+            <div class="stat-card c-pink">
+                <h4>Bookmarks</h4>
+                <h2>{{ bookmarks }}</h2>
+                <p>koleksi tersimpan</p>
+                <i class="far fa-heart"></i>
+            </div>
+            <div class="stat-card c-purple">
+                <h4>Peringkat & EXP</h4>
+                <h2>{{ user.exp }}</h2>
+                <p>Total EXP Point</p>
+                <i class="fas fa-trophy"></i>
+            </div>
+        </div>
+
+        <div class="bottom-layout">
+            
+            <div class="recommendations">
+                <div class="section-header">
+                    <div>
+                        <h4>Pilihan Untukmu</h4>
+                        <h2>Rekomendasi Minggu Ini (Engineering)</h2>
+                    </div>
+                    <a href="#">LIHAT SEMUA <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="book-grid">
+                    {% for buku in rekomendasi %}
+                    <div class="book-card">
+                        <img src="{{ buku.cover }}" alt="Cover" class="book-cover">
+                        <div class="book-info">
+                            <p class="type">Buku Digital</p>
+                            <h3>{{ buku.judul }}</h3>
+                            <p class="author">{{ buku.penulis }}</p>
+                            <span class="book-rating"><i class="fas fa-star"></i> {{ buku.rating }}  •  <i class="fas fa-eye"></i> {{ buku.views }}</span>
+                            <i class="fas fa-heart heart"></i>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Loading API atau koneksi internet terputus...</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="continue-reading">
+                <div class="section-header">
+                    <div>
+                        <h4>Lanjutkan</h4>
+                        <h2>Bacaanmu</h2>
+                    </div>
+                </div>
+                
+                <div class="continue-card">
+                    {% if bacaan_terakhir %}
+                        <img src="https://via.placeholder.com/60x80" alt="Cover">
+                        <div class="continue-info" style="width: 100%;">
+                            <h3>{{ bacaan_terakhir.buku_digital.judul }}</h3>
+                            <p>Progress Membaca</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="--progress: {{ bacaan_terakhir.progress_baca|default:0 }}%;"></div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="continue-info">
+                            <h3>Belum ada bacaan</h3>
+                            <p>Pinjam buku di katalog untuk mulai membaca!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Abaikan Virtual Environment
+venv/
+ENV/
+env/
+
+# Abaikan Database Lokal
+*.sqlite3
+db.sqlite3
+
+# Abaikan Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Abaikan Pengaturan Editor
+.vscode/
+.idea/

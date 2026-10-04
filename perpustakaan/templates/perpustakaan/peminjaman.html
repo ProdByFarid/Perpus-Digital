@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peminjaman - Perpustakaan Digital</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS GLOBAL -->
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+    <!-- JS GLOBAL -->
+    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+</head>
+<body class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}" class="active"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="active"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <div>
+                <h4>{{ user.username }}</h4>
+                <p>Anggota</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>NAMA / ANGGOTA</h4>
+                <h1>Selamat Datang, {{ user.username }}</h1>
+                <p>Siap menemukan bacaan baru hari ini?</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <!-- Banner Hitam Peminjaman -->
+        <div class="hero-banner-small">
+            <h4>BUKU AKTIF</h4>
+            <h2>{{ total_pinjaman }} buku sedang kamu baca</h2>
+            <p>Semua buku dapat dipinjam selama 14 hari.</p>
+        </div>
+
+        <!-- Daftar Buku Dipinjam -->
+        <div class="loan-list">
+            {% for item in daftar_pinjaman %}
+            <div class="loan-card">
+                <!-- Cover: Ambil dari Buku Digital atau Jurnal (tergantung mana yang tidak null) -->
+                {% if item.buku_digital %}
+                    <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}" alt="Cover" class="loan-cover">
+                {% elif item.jurnal %}
+                    <img src="https://images.unsplash.com/photo-1580536203673-93e150937a54?w=300" alt="Cover" class="loan-cover">
+                {% endif %}
+
+                <div class="loan-info">
+                    <div class="loan-status-row">
+                        <span class="badge-aktif">Aktif</span>
+                        <span class="due-date">Jatuh tempo {{ item.jatuh_tempo|date:"d M Y" }}</span>
+                    </div>
+                    
+                    <h3>{% if item.buku_digital %}{{ item.buku_digital.judul }}{% else %}{{ item.jurnal.judul }}{% endif %}</h3>
+                    
+                    <p class="author">
+                        {% if item.buku_digital %}{{ item.buku_digital.penulis }} • {{ item.buku_digital.tahun_terbit }}{% else %}{{ item.jurnal.penulis }} • {{ item.jurnal.tahun_terbit }}{% endif %}
+                    </p>
+                    <p class="page">Progress: {{ item.progress_baca }}%</p>
+                </div>
+
+                <div class="loan-actions">
+                    <button class="btn-outline">Perpanjang</button>
+                    <!-- Tombol kembalikan memicu JS Alert sebelum diarahkan ke URL Backend -->
+                    <a href="{% url 'kembalikan_buku' item.id %}" class="btn-outline" style="border: 1px solid #dc2626; color: #dc2626;" onclick="confirmReturn(event, '{% if item.buku_digital %}{{ item.buku_digital.judul }}{% else %}{{ item.jurnal.judul }}{% endif %}')">Kembalikan</a>
+                </div>
+            </div>
+            {% empty %}
+            <!-- State Kosong jika tidak ada pinjaman -->
+            <div style="text-align: center; padding: 50px; background: white; border-radius: 12px;">
+                <i class="fas fa-box-open fa-3x" style="color:#E5E5D8; margin-bottom:15px;"></i>
+                <h3 style="color:#121824;">Tidak ada buku yang sedang dipinjam.</h3>
+                <p style="color:#8A8A7A; margin-top:5px;">Silakan jelajahi katalog untuk meminjam buku.</p>
+                <a href="{% url 'katalog' %}" style="display:inline-block; margin-top:20px; background:#D4F838; color:#121824; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Pergi ke Katalog</a>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</body>
+</html>

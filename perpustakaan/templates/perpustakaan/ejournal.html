@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Journal - Perpustakaan Digital</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+</head>
+<body class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <!-- Perhatikan class "active" sekarang pindah ke E-journal -->
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}" class="active"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="active"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <div>
+                <h4>{{ user.username }}</h4>
+                <p>Anggota</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- Header -->
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>NAMA / ANGGOTA</h4>
+                <h1>E - Journal</h1>
+                <p>Temukan artikel dan publikasi ilmiah terbaru.</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="search-filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Cari judul atau penulis jurnal...">
+            </div>
+            <button class="btn-filter">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+        </div>
+
+        <!-- Wadah List Jurnal (Diisi oleh script.js) -->
+        <div class="journal-list" id="journal-list-container">
+            <!-- Loading Spinner (dihapus otomatis oleh JS saat data siap) -->
+            <div style="text-align: center; padding: 40px; color: #8A8A7A;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p style="margin-top: 10px; font-size: 13px;">Menarik data Jurnal Engineering dari OpenAlex API...</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

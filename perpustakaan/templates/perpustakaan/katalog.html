@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Buku - Perpustakaan Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <!-- Perhatikan class "active" sekarang pindah ke Katalog Buku -->
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}" class="active"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="active"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <div>
+                <h4>{{ user.username }}</h4>
+                <p>Anggota</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- Header -->
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>NAMA / ANGGOTA</h4>
+                <h1>Katalog Buku</h1>
+                <p>Temukan bacaan terbaikmu di sini.</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="search-filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Cari judul atau penulis...">
+            </div>
+            <button class="btn-filter">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+        </div>
+
+        <!-- Grid Katalog Buku -->
+        <div class="catalog-grid">
+            {% for buku in buku_list %}
+            <div class="book-card">
+                <!-- Jika ada cover, tampilkan. Jika kosong, pakai placeholder -->
+                <img src="{% if buku.cover %}{{ buku.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}" alt="Cover" class="book-cover">
+                <div class="book-info">
+                    <p class="type">Novel</p>
+                    <h3>{{ buku.judul }}</h3>
+                    <p class="author">{{ buku.penulis }} • {{ buku.tahun_terbit }}</p>
+                    <span class="book-rating"><i class="fas fa-star"></i> 4.7  •  <i class="fas fa-eye"></i> 56</span>
+                    <i class="fas fa-heart heart"></i>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Pesan jika Database Buku Digital masih kosong -->
+            <div style="grid-column: span 5; text-align: center; padding: 50px; color: #8A8A7A;">
+                <i class="fas fa-book-open fa-3x" style="margin-bottom: 15px;"></i>
+                <h3>Katalog masih kosong</h3>
+                <p>Belum ada buku yang ditambahkan oleh Admin.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</body>
+</html>

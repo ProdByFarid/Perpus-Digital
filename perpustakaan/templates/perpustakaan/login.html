@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk ke Perpustakaan</title>
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="left-panel">
+            <div class="circle-decoration"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="form-box">
+                <div class="subtitle">SELAMAT DATANG</div>
+                <h1 class="title">Masuk ke Perpustakaan</h1>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert-error">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label>Username / NIM</label>
+                        <input type="text" name="username" placeholder="Masukkan username atau NIM" required autofocus>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Masukkan password" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Masuk</button>
+                </form>
+
+                <div class="footer-text">
+                    Belum punya akun? <a href="{% url 'register' %}">Daftar sekarang</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

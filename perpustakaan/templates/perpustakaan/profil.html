@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - Perpustakaan Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}">
+    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+</head>
+<body class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <!-- Active pindah ke Profil -->
+            <li><a href="{% url 'profil' %}" class="active"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <div>
+                <h4>{{ user.username }}</h4>
+                <p>Anggota</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- Header -->
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>NAMA / ANGGOTA</h4>
+                <h1>Profil Saya</h1>
+                <p>Atur informasi dan keamanan akun kamu di sini.</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="profile-container">
+            
+            <!-- KARTU KIRI: INFO & PENCAPAIAN -->
+            <div class="profile-card">
+                <div class="profile-header-bg"></div>
+                <div class="profile-info-wrap">
+                    
+                    <div class="profile-name-row">
+                        <div>
+                            <div class="profile-avatar-large">{{ user.username|make_list|first|upper }}</div>
+                            <h2>{{ user.username }}</h2>
+                            <p>Anggota sejak {{ user.date_joined|date:"F Y" }}</p>
+                        </div>
+                        <div class="streak-badge">
+                            <i class="fas fa-fire"></i> {{ user.streak_days }} hari streak
+                        </div>
+                    </div>
+
+                    <div class="profile-status-badges">
+                        <span class="p-badge active">Anggota aktif</span>
+                        <span class="p-badge count">{{ total_dibaca }} buku dibaca</span>
+                    </div>
+
+                    <!-- Achievements (Desain Figma) -->
+                    <div class="achievement-list">
+                        <div class="ach-item c-orange">
+                            <div class="ach-icon"><i class="fas fa-star"></i></div>
+                            <div class="ach-text">
+                                <h4>First Reader</h4>
+                                <p>Baca buku pertama</p>
+                            </div>
+                        </div>
+                        
+                        <div class="ach-item c-blue">
+                            <div class="ach-icon"><i class="fas fa-compass"></i></div>
+                            <div class="ach-text">
+                                <h4>Teknik Explorer</h4>
+                                <p>5 kategori teknik</p>
+                            </div>
+                        </div>
+                        
+                        <div class="ach-item c-green">
+                            <div class="ach-icon"><i class="fas fa-bolt"></i></div>
+                            <div class="ach-text">
+                                <h4>Streak Keeper</h4>
+                                <p>7 hari berturut-turut</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- KARTU KANAN: FORM PENGATURAN AKUN -->
+            <div class="settings-card">
+                <div class="settings-header">
+                    <div>
+                        <h4>PENGATURAN AKUN</h4>
+                        <h2>Informasi pribadi</h2>
+                    </div>
+                    <span><i class="far fa-user"></i> akun privat</span>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" class="settings-form">
+                    {% csrf_token %}
+                    
+                    <div class="input-group">
+                        <label>Nama Pengguna / Username (Tidak dapat diubah)</label>
+                        <input type="text" value="{{ user.username }}" disabled style="background:#F0F4F8; color:#8A8A7A; cursor:not-allowed;">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email }}" placeholder="Masukkan email kamu">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password lama</label>
+                        <input type="password" name="password_lama" id="passLama" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <i class="far fa-eye toggle-password" onclick="togglePassword('passLama', this)"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password baru</label>
+                        <input type="password" name="password_baru" id="passBaru" placeholder="Masukkan password baru">
+                        <i class="far fa-eye toggle-password" onclick="togglePassword('passBaru', this)"></i>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'dashboard' %}" class="btn-cancel">Batal</a>
+                        <button type="submit" class="btn-save">Simpan perubahan <i class="fas fa-check"></i></button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
