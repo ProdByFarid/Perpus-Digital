@@ -20,7 +20,7 @@
             <li><a href="{% url 'katalog' %}" class="active"><i class="fas fa-book"></i> Katalog Buku</a></li>
             <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
             <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
-            <li><a href="{% url 'bookmarks' %}" class="active"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="{% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
             <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
             <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
             <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
