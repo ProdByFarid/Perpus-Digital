@@ -1054,3 +1054,12 @@ body.auth-body {
 .riwayat-row:last-child {
     border-bottom: none;
 }
+
+.stat-card .stat-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 22px;
+    height: 22px;
+    color: #000;
+}

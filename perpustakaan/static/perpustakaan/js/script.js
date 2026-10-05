@@ -1,40 +1,77 @@
 // 1. FUNGSI UNTUK DASHBOARD (Buku dari Open Library)
+const OL_SEARCH = 'https://openlibrary.org/search.json';
+const OL_FIELDS = 'key,title,author_name,first_publish_year,cover_i,ia,has_fulltext,ratings_average,want_to_read_count';
+const NO_COVER = 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300';
+
+// Data dari API luar harus di-escape supaya tidak bisa menyisipkan HTML
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Cover lewat ID internal (tidak kena rate limit seperti ISBN)
+function olCover(coverId, size = 'M') {
+    return coverId ? `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg` : NO_COVER;
+}
+
+async function olSearch(params) {
+    const qs = new URLSearchParams({ fields: OL_FIELDS, limit: 8, ...params });
+    const res = await fetch(`${OL_SEARCH}?${qs}`);
+    if (!res.ok) throw new Error('Open Library error ' + res.status);
+    const data = await res.json();
+    return data.docs || [];
+}
+
+function renderBooks(container, books) {
+    if (!books.length) {
+        container.innerHTML = '<p>Buku tidak ditemukan.</p>';
+        return;
+    }
+    container.innerHTML = books.map(b => {
+        const rating = b.ratings_average ? b.ratings_average.toFixed(1) : '-';
+        const wants = b.want_to_read_count ?? 0;
+        return `
+        <div class="book-card" onclick="window.open('https://openlibrary.org${esc(b.key)}','_blank')">
+            <img src="${olCover(b.cover_i)}" alt="Cover ${esc(b.title)}" class="book-cover">
+            <div class="book-info">
+                <p class="type">Buku Digital</p>
+                <h3>${esc((b.title || 'Tanpa judul').substring(0, 40))}</h3>
+                <p class="author">${esc((b.author_name?.[0] || 'Unknown').substring(0, 24))}</p>
+                <span class="book-rating">
+                    <i class="fas fa-star"></i> ${rating} • <i class="fas fa-bookmark"></i> ${wants}
+                </span>
+                <i class="fas fa-heart heart"></i>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Rekomendasi dashboard + search bar
 async function fetchEngineeringBooks() {
     const container = document.getElementById('book-grid-container');
-    if (!container) return; // Hanya jalan di Dashboard
-
-    const apiUrl = 'https://openlibrary.org/search.json?q=computer+engineering&subject=engineering&limit=4';
+    if (!container) return; // hanya jalan di dashboard
 
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('Gagal fetch API Open Library');
-        const data = await response.json();
-        const books = data.docs || [];
+        renderBooks(container, await olSearch({ q: 'subject:engineering', sort: 'rating' }));
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<p>Gagal memuat data dari Open Library.</p>';
+    }
 
-        if (books.length === 0) return;
-        container.innerHTML = ''; // Hapus loading
-
-        books.forEach(book => {
-            const coverId = book.cover_i;
-            const coverUrl = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300';
-            const title = (book.title || 'Engineering Book').substring(0, 32);
-            const author = (book.author_name ? book.author_name[0] : 'Engineering Author').substring(0, 22);
-
-            container.innerHTML += `
-                <div class="book-card">
-                    <img src="${coverUrl}" alt="Cover" class="book-cover">
-                    <div class="book-info">
-                        <p class="type">Buku Digital</p>
-                        <h3>${title}</h3>
-                        <p class="author">${author}</p>
-                        <span class="book-rating"><i class="fas fa-star"></i> 4.8 • <i class="fas fa-eye"></i> 1.2k</span>
-                        <i class="fas fa-heart heart"></i>
-                    </div>
-                </div>
-            `;
+    const input = document.getElementById('hero-search');
+    if (input) {
+        input.addEventListener('keydown', async (e) => {
+            if (e.key !== 'Enter') return;
+            const q = input.value.trim();
+            if (!q) return;
+            document.getElementById('rec-title').textContent = `Hasil pencarian: "${q}"`;
+            container.innerHTML = '<p>Mencari...</p>';
+            try {
+                renderBooks(container, await olSearch({ q }));
+            } catch (err) {
+                container.innerHTML = '<p>Gagal mencari.</p>';
+            }
         });
-    } catch (error) {
-        console.error(error);
     }
 }
 
@@ -176,4 +213,28 @@ function togglePassword(inputId, iconElement) {
         iconElement.classList.remove("fa-eye-slash");
         iconElement.classList.add("fa-eye");
     }
+}
+
+async function searchInsideBook(iaId, query) {
+    const meta = await (await fetch(`https://archive.org/metadata/${iaId}`)).json();
+    const host = meta.d1, path = meta.dir;
+    if (!host || !path) throw new Error('Server buku tidak ditemukan');
+
+    return new Promise((resolve, reject) => {
+        const cb = 'olInside_' + Date.now();
+        const s = document.createElement('script');
+        window[cb] = (data) => { delete window[cb]; s.remove(); resolve(data); };
+        s.onerror = () => { delete window[cb]; s.remove(); reject(new Error('Gagal memuat')); };
+        s.src = `https://${host}/fulltext/inside.php?item_id=${iaId}&doc=${iaId}` +
+                `&path=${encodeURIComponent(path)}&q=${encodeURIComponent(query)}&callback=${cb}`;
+        document.body.appendChild(s);
+    });
+}
+
+// Contoh pemakaian: tampilkan cuplikan dengan kata yang di-highlight
+async function tampilkanHasil(iaId, q) {
+    const data = await searchInsideBook(iaId, q);
+    return (data.matches || []).slice(0, 5).map(m =>
+        esc(m.text).replace(/\{\{\{/g, '<mark>').replace(/\}\}\}/g, '</mark>')
+    );
 }

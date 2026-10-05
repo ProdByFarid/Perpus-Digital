@@ -42,8 +42,8 @@
         
         <div class="top-nav">
             <div class="greeting">
-                <h4>Nama / Anggota</h4>
-                <h1 class="page-title-space">Selamat Datang, {{ user.username }}</h1>
+                <h4>{{ user.username }} / Anggota</h4>
+                <h1 class="page-title-space">Selamat Datang, {{ user.nama_tampilan|default:user.username }}</h1>
                 <p>Siap menemukan bacaan baru hari ini?</p>
             </div>
             <div class="nav-actions">
@@ -66,7 +66,7 @@
             </div>
 
             <div class="search-bar">
-                <input type="text" placeholder="Cari judul atau penulis">
+                <input type="text" id="hero-search" placeholder="Cari judul atau penulis, lalu tekan Enter">
             </div>
         </div>
 
@@ -81,6 +81,14 @@
                 <h4>Total Dibaca</h4>
                 <h2>{{ total_dibaca }}</h2>
                 <p>buku selesai</p>
+                <svg class="stat-icon" width="22" height="22"
+                    style="position:absolute; top:20px; right:20px; width:22px; height:22px; color:#000;"
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
             </div>
             <div class="stat-card c-pink">
                 <h4>Bookmarks</h4>
@@ -92,38 +100,38 @@
                 <h4>Peringkat & EXP</h4>
                 <h2>{{ user.exp }}</h2>
                 <p>Total EXP Point</p>
-                <i class="fas fa-trophy"></i>
+            <svg class="stat-icon" width="22" height="22"
+                style="position:absolute; top:20px; right:20px; width:22px; height:22px; color:#000;"
+                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                <path d="M4 22h16"/>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
             </div>
         </div>
 
         <div class="bottom-layout">
             
-            <div class="recommendations">
-                <div class="section-header">
-                    <div>
-                        <h4>Pilihan Untukmu</h4>
-                        <h2>Rekomendasi Minggu Ini (Engineering)</h2>
-                    </div>
-                    <a href="#">LIHAT SEMUA <i class="fas fa-arrow-right"></i></a>
+        <div class="recommendations">
+            <div class="section-header">
+                <div>
+                    <h4>Pilihan Untukmu</h4>
+                    <h2 id="rec-title">Rekomendasi Minggu Ini (Engineering)</h2>
                 </div>
-                
-                <div class="book-grid">
-                    {% for buku in rekomendasi %}
-                    <div class="book-card">
-                        <img src="{{ buku.cover }}" alt="Cover" class="book-cover">
-                        <div class="book-info">
-                            <p class="type">Buku Digital</p>
-                            <h3>{{ buku.judul }}</h3>
-                            <p class="author">{{ buku.penulis }}</p>
-                            <span class="book-rating"><i class="fas fa-star"></i> {{ buku.rating }}  •  <i class="fas fa-eye"></i> {{ buku.views }}</span>
-                            <i class="fas fa-heart heart"></i>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p>Loading API atau koneksi internet terputus...</p>
-                    {% endfor %}
-                </div>
+                <a href="#">LIHAT SEMUA <i class="fas fa-arrow-right"></i></a>
             </div>
+            <div class="book-grid" id="book-grid-container">
+                <p>Memuat buku...</p>
+            </div>
+            <p style="font-size:11px;color:#8A8A7A;margin-top:12px;">
+                Data buku dari <a href="https://openlibrary.org" target="_blank">Open Library</a>
+            </p>
+        </div>
 
             <div class="continue-reading">
                 <div class="section-header">
