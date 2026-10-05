@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=999">
     <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&family=Space+Grotesk:wght@300..700&display=swap');
+    </style>
 </head>
 <body class="app-body">
 
@@ -42,7 +45,7 @@
         <div class="top-nav">
             <div class="greeting">
                 <h4>NAMA / ANGGOTA</h4>
-                <h1>Profil Saya</h1>
+                <h1 class="page-title-space">Profil Saya</h1>
                 <p>Atur informasi dan keamanan akun kamu di sini.</p>
             </div>
             <div class="nav-actions">
@@ -56,13 +59,25 @@
             
             <!-- KARTU KIRI: INFO & PENCAPAIAN -->
             <div class="profile-card">
-                <div class="profile-header-bg"></div>
+                <!-- Background Cover -->
+                <div class="profile-header-bg"
+                    {% if user.foto_background %}style="background: url('{{ user.foto_background.url }}') center/cover;"{% endif %}>
+                </div>
+                
                 <div class="profile-info-wrap">
                     
                     <div class="profile-name-row">
                         <div>
-                            <div class="profile-avatar-large">{{ user.username|make_list|first|upper }}</div>
-                            <h2>{{ user.username }}</h2>
+                            <!-- Foto Profil -->
+                            {% if user.foto_profil %}
+                                <img src="{{ user.foto_profil.url }}" alt="Profile" class="profile-avatar-large" style="object-fit: cover; border-radius: 50%; padding: 0;">
+                            {% else %}
+                                <div class="profile-avatar-large">{{ user.nama_tampilan|make_list|first|upper }}</div>
+                            {% endif %}
+                            
+                            <!-- Nama Tampilan (Bisa diubah) dan NIM (Tetap) -->
+                            <h2>{{ user.nama_tampilan }}</h2>
+                            <p style="font-weight: bold; color: #121824; font-size: 13px; margin-top: 5px;">NIM: {{ user.username }}</p>
                             <p>Anggota sejak {{ user.date_joined|date:"F Y" }}</p>
                         </div>
                         <div class="streak-badge">
@@ -70,38 +85,11 @@
                         </div>
                     </div>
 
+                    <!-- ... (Sisa badges achievement biarkan saja sama) ... -->
                     <div class="profile-status-badges">
                         <span class="p-badge active">Anggota aktif</span>
                         <span class="p-badge count">{{ total_dibaca }} buku dibaca</span>
                     </div>
-
-                    <!-- Achievements (Desain Figma) -->
-                    <div class="achievement-list">
-                        <div class="ach-item c-orange">
-                            <div class="ach-icon"><i class="fas fa-star"></i></div>
-                            <div class="ach-text">
-                                <h4>First Reader</h4>
-                                <p>Baca buku pertama</p>
-                            </div>
-                        </div>
-                        
-                        <div class="ach-item c-blue">
-                            <div class="ach-icon"><i class="fas fa-compass"></i></div>
-                            <div class="ach-text">
-                                <h4>Teknik Explorer</h4>
-                                <p>5 kategori teknik</p>
-                            </div>
-                        </div>
-                        
-                        <div class="ach-item c-green">
-                            <div class="ach-icon"><i class="fas fa-bolt"></i></div>
-                            <div class="ach-text">
-                                <h4>Streak Keeper</h4>
-                                <p>7 hari berturut-turut</p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
@@ -112,28 +100,44 @@
                         <h4>PENGATURAN AKUN</h4>
                         <h2>Informasi pribadi</h2>
                     </div>
-                    <span><i class="far fa-user"></i> akun privat</span>
                 </div>
 
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="message {{ message.tags }}">
+                        <div class="alert-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
                             {{ message }}
                         </div>
                     {% endfor %}
                 {% endif %}
 
-                <form method="POST" class="settings-form">
+                <!-- TAMBAHKAN enctype="multipart/form-data" UNTUK UPLOAD FILE -->
+                <form method="POST" class="settings-form" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <div class="input-group">
-                        <label>Nama Pengguna / Username (Tidak dapat diubah)</label>
+                        <label>NIM (Tidak dapat diubah)</label>
                         <input type="text" value="{{ user.username }}" disabled style="background:#F0F4F8; color:#8A8A7A; cursor:not-allowed;">
                     </div>
 
                     <div class="input-group">
+                        <label>Nama Tampilan (Display Name)</label>
+                        <input type="text" name="nama_tampilan" value="{{ user.nama_tampilan }}" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Ubah Foto Profil</label>
+                        <input type="file" name="foto_profil" accept="image/*" style="padding: 9px 16px;">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Ubah Background Cover</label>
+                        <input type="file" name="foto_background" accept="image/*" style="padding: 9px 16px;">
+                    </div>
+
+                    <div class="input-group">
                         <label>Email</label>
-                        <input type="email" name="email" value="{{ user.email }}" placeholder="Masukkan email kamu">
+                        <input type="email" name="email" value="{{ user.email }}">
                     </div>
 
                     <div class="input-group">
@@ -154,6 +158,8 @@
                     </div>
                 </form>
             </div>
+
+        </div>
 
         </div>
     </div>

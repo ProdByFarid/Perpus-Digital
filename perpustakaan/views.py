@@ -217,23 +217,48 @@ def profil_view(request):
     total_dibaca = Peminjaman.objects.filter(user=user, status='Selesai').count()
 
     if request.method == 'POST':
+        # Ambil data dari form HTML
+        nama_baru = request.POST.get('nama_tampilan')
         email_baru = request.POST.get('email')
         pass_lama = request.POST.get('password_lama')
         pass_baru = request.POST.get('password_baru')
+        
+        # Ambil file upload gambar
+        foto_profil = request.FILES.get('foto_profil')
+        foto_bg = request.FILES.get('foto_background')
 
-        # Update Email
+        perubahan_terjadi = False
+
+        # Update Nama & Email
+        if nama_baru and nama_baru != user.nama_tampilan:
+            user.nama_tampilan = nama_baru
+            perubahan_terjadi = True
+        
         if email_baru and email_baru != user.email:
             user.email = email_baru
-            user.save()
-            messages.success(request, "Email berhasil diperbarui!")
+            perubahan_terjadi = True
 
-        # Update Password
+        # Update Foto (Hanya jika ada file baru yang diupload)
+        if foto_profil:
+            user.foto_profil = foto_profil
+            perubahan_terjadi = True
+            
+        if foto_bg:
+            user.foto_background = foto_bg
+            perubahan_terjadi = True
+
+        # Simpan perubahan teks/foto
+        if perubahan_terjadi:
+            user.save()
+            messages.success(request, "Perubahan Berhasil!")
+
+        # Update Password Khusus
         if pass_lama and pass_baru:
             if user.check_password(pass_lama):
                 user.set_password(pass_baru)
                 user.save()
-                update_session_auth_hash(request, user) # Mencegah user ter-logout setelah ganti password
-                messages.success(request, "Password berhasil diperbarui!")
+                update_session_auth_hash(request, user)
+                messages.success(request, "Perubahan Berhasil! (Password diubah)")
             else:
                 messages.error(request, "Gagal: Password lama salah!")
                 

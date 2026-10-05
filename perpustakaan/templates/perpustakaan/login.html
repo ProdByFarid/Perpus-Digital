@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=999">
     <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&family=Space+Grotesk:wght@300..700&display=swap');
+    </style>
 </head>
 
 <!-- 3. CLASS INI YANG BIKIN JADI CARD DI TENGAH -->
@@ -24,7 +27,7 @@
         <div class="right-panel">
             <div class="form-box">
                 <div class="subtitle">SELAMAT DATANG</div>
-                <h1 class="title">Masuk ke Perpustakaan</h1>
+                <h1 class="title" class="page-title-space">Masuk ke Perpustakaan</h1>
 
                 {% if messages %}
                     {% for message in messages %}
@@ -46,10 +49,6 @@
 
                     <button type="submit" class="btn-submit">Masuk</button>
                 </form>
-
-                <div class="footer-text">
-                    Belum punya akun? <a href="{% url 'register' %}">Daftar sekarang</a>
-                </div>
             </div>
         </div>
     </div>
