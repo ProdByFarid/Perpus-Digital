@@ -3,7 +3,6 @@ const OL_SEARCH = 'https://openlibrary.org/search.json';
 const OL_FIELDS = 'key,title,author_name,first_publish_year,cover_i,ia,has_fulltext,ratings_average,want_to_read_count';
 const NO_COVER = 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300';
 
-// Data dari API luar harus di-escape supaya tidak bisa menyisipkan HTML
 function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

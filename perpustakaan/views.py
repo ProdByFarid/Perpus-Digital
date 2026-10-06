@@ -1,12 +1,34 @@
+# ini adalah file views.py untuk aplikasi perpustakaan
+
 from datetime import timedelta
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import CustomUser, BukuDigital, Jurnal, Peminjaman, Bookmark
 from django.contrib.auth import update_session_auth_hash
+import re
+
+MASA_PINJAM_HARI = 14
+OLID_RE = re.compile(r'^OL\d+W$')
+COVER_PREFIX = 'https://covers.openlibrary.org/'
+
+# (nilai subject di Open Library, label yang tampil)
+KATEGORI = [
+    ('engineering', 'Engineering'),
+    ('computer science', 'Computer Science'),
+    ('mathematics', 'Matematika'),
+    ('physics', 'Fisika'),
+    ('business', 'Bisnis'),
+    ('fiction', 'Fiksi'),
+    ('history', 'Sejarah'),
+]
+DEFAULT_KATEGORI = 'engineering'
+BAHASA = [('', 'Semua bahasa'), ('ind', 'Indonesia'), ('eng', 'Inggris')]
 
 
 # ==========================================
@@ -93,9 +115,134 @@ def dashboard(request):
 # 3. KATALOG & E-JOURNAL
 # ==========================================
 @login_required(login_url='login')
+@ensure_csrf_cookie
 def katalog_view(request):
-    buku_list = BukuDigital.objects.all().order_by('-tahun_terbit')
-    return render(request, 'perpustakaan/katalog.html', {'user': request.user, 'buku_list': buku_list})
+    """Data buku diambil browser langsung dari Open Library (lihat static/js/buku.js).
+    Django hanya mengirim daftar kategori dan buku yang sudah di-bookmark user."""
+    context = {
+        'user': request.user,
+        'kategori_list': KATEGORI,
+        'bahasa_list': BAHASA,
+        'default_kategori': DEFAULT_KATEGORI,
+        'tersimpan_ids': list(
+            Bookmark.objects.filter(user=request.user, buku_digital__isnull=False)
+            .values_list('buku_digital_id', flat=True)
+        ),
+    }
+    return render(request, 'perpustakaan/katalog.html', context)
+
+
+# ---------- Detail buku, pinjam, bookmark ----------
+def _bersih(teks, panjang):
+    return (teks or '').strip()[:panjang]
+
+
+def _pastikan_buku(request, olid):
+    """Ambil BukuDigital dari database; kalau belum ada, buat dari data yang dikirim browser."""
+    d = request.POST
+    buku = BukuDigital.objects.filter(pk=olid).first()
+    if buku:
+        deskripsi = _bersih(d.get('deskripsi'), 20000)
+        if deskripsi and not buku.deskripsi:
+            buku.deskripsi = deskripsi
+            buku.save(update_fields=['deskripsi'])
+        return buku
+
+    judul = _bersih(d.get('judul'), 255)
+    if not judul:
+        return None  # data buku belum sampai dari browser
+
+    cover = _bersih(d.get('cover'), 200)
+    if not cover.startswith(COVER_PREFIX):
+        cover = ''
+    ia = _bersih(d.get('ia'), 100)
+    if not re.match(r'^[A-Za-z0-9._-]+$', ia):
+        ia = ''
+    tahun = ''.join(ch for ch in _bersih(d.get('tahun'), 10) if ch.isdigit())[:4]
+    link = f'https://archive.org/details/{ia}' if ia else f'https://openlibrary.org/works/{olid}'
+
+    return BukuDigital.objects.create(
+        id_item=olid,
+        judul=judul,
+        penulis=_bersih(d.get('penulis'), 255) or 'Unknown',
+        tahun_terbit=tahun,
+        cover=cover or None,
+        deskripsi=_bersih(d.get('deskripsi'), 20000),
+        ia_id=ia,
+        link_unduh=link,
+    )
+
+
+@login_required(login_url='login')
+@ensure_csrf_cookie
+def buku_detail(request, olid):
+    """Kerangka halaman. Isi buku (judul, deskripsi, dll) diisi browser dari Open Library."""
+    if not OLID_RE.match(olid):
+        raise Http404
+
+    user = request.user
+    buku_db = BukuDigital.objects.filter(pk=olid).first()
+    pinjam_aktif = Peminjaman.objects.filter(user=user, buku_digital_id=olid, status='Dibaca').first()
+    jumlah_aktif = Peminjaman.objects.filter(user=user, status='Dibaca').count()
+    context = {
+        'user': user,
+        'olid': olid,
+        # cadangan kalau Open Library tidak terjangkau (hanya ada kalau buku pernah dipinjam/di-bookmark)
+        'buku_db': {
+            'olid': buku_db.id_item, 'judul': buku_db.judul, 'penulis': buku_db.penulis,
+            'tahun': buku_db.tahun_terbit, 'cover': buku_db.cover or '', 'cover_besar': buku_db.cover or '',
+            'ia': buku_db.ia_id, 'deskripsi': buku_db.deskripsi, 'subjek': [], 'rating': None, 'want': 0,
+        } if buku_db else None,
+        'bookmarked': Bookmark.objects.filter(user=user, buku_digital_id=olid).exists(),
+        'pinjam_aktif': pinjam_aktif,
+        'jatuh_tempo': pinjam_aktif.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI) if pinjam_aktif else None,
+        'jumlah_aktif': jumlah_aktif,
+        'max_loans': user.max_loans,
+        'slot_penuh': jumlah_aktif >= user.max_loans,
+        'masa_pinjam': MASA_PINJAM_HARI,
+    }
+    return render(request, 'perpustakaan/buku_detail.html', context)
+
+
+@login_required(login_url='login')
+@require_POST
+def pinjam_buku(request, olid):
+    if not OLID_RE.match(olid):
+        raise Http404
+    user = request.user
+
+    if Peminjaman.objects.filter(user=user, buku_digital_id=olid, status='Dibaca').exists():
+        messages.info(request, 'Buku ini sudah ada di daftar pinjamanmu.')
+        return redirect('buku_detail', olid=olid)
+
+    if Peminjaman.objects.filter(user=user, status='Dibaca').count() >= user.max_loans:
+        messages.error(request, f'Batas pinjam {user.max_loans} buku tercapai. Kembalikan satu buku dulu.')
+        return redirect('buku_detail', olid=olid)
+
+    buku = _pastikan_buku(request, olid)
+    if buku is None:
+        messages.error(request, 'Data buku belum selesai dimuat. Tunggu sebentar, lalu coba lagi.')
+        return redirect('buku_detail', olid=olid)
+
+    Peminjaman.objects.create(user=user, buku_digital=buku)
+    messages.success(request, f'"{buku.judul}" berhasil dipinjam selama {MASA_PINJAM_HARI} hari.')
+    return redirect('peminjaman')
+
+
+@login_required(login_url='login')
+@require_POST
+def toggle_bookmark(request, olid):
+    if not OLID_RE.match(olid):
+        raise Http404
+    ada = Bookmark.objects.filter(user=request.user, buku_digital_id=olid).first()
+    if ada:
+        ada.delete()
+        return JsonResponse({'bookmarked': False})
+    buku = _pastikan_buku(request, olid)
+    if buku is None:
+        return JsonResponse({'error': 'Data buku belum dimuat.'}, status=400)
+    Bookmark.objects.create(user=request.user, buku_digital=buku)
+    return JsonResponse({'bookmarked': True})
 
 
 @login_required(login_url='login')
@@ -111,7 +258,7 @@ def peminjaman_view(request):
     daftar_pinjaman = Peminjaman.objects.filter(user=request.user, status='Dibaca').order_by('-tanggal_pinjam')
     
     for pinjaman in daftar_pinjaman:
-        pinjaman.jatuh_tempo = pinjaman.tanggal_pinjam + timedelta(days=14)
+        pinjaman.jatuh_tempo = pinjaman.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI)
 
     context = {
         'user': request.user,
@@ -166,7 +313,7 @@ def riwayat_view(request):
     riwayat_list = Peminjaman.objects.filter(user=request.user).order_by('-tanggal_pinjam')
     
     for item in riwayat_list:
-        item.tanggal_kembali = item.tanggal_pinjam + timedelta(days=14)
+        item.tanggal_kembali = item.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI)
 
     context = {
         'user': request.user,
