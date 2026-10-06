@@ -15,10 +15,10 @@
 </head>
 <body class="app-body">
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
-            <!-- Perhatikan class "active" sekarang pindah ke E-journal -->
+            
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
             <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
             <li><a href="{% url 'ejournal' %}" class="active"><i class="fas fa-file-alt"></i> E-journal</a></li>
@@ -38,10 +38,10 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="main-content">
         
-        <!-- Header -->
+        
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / ANGGOTA</h4>
@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <!-- Search & Filter Bar -->
+        
         <div class="search-filter-bar">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -66,9 +66,9 @@
             </button>
         </div>
 
-        <!-- Wadah List Jurnal (Diisi oleh script.js) -->
+        
         <div class="journal-list" id="journal-list-container">
-            <!-- Loading Spinner (dihapus otomatis oleh JS saat data siap) -->
+            
             <div style="text-align: center; padding: 40px; color: #8A8A7A;">
                 <i class="fas fa-spinner fa-spin fa-2x"></i>
                 <p style="margin-top: 10px; font-size: 13px;">Menarik data Jurnal Engineering dari OpenAlex API...</p>

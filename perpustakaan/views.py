@@ -1,5 +1,3 @@
-# ini adalah file views.py untuk aplikasi perpustakaan
-
 from datetime import timedelta
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
@@ -31,9 +29,6 @@ DEFAULT_KATEGORI = 'engineering'
 BAHASA = [('', 'Semua bahasa'), ('ind', 'Indonesia'), ('eng', 'Inggris')]
 
 
-# ==========================================
-# 1. AUTENTIKASI (LOGIN, REGISTER, LOGOUT)
-# ==========================================
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -91,9 +86,6 @@ def logout_view(request):
     return redirect('login')
 
 
-# ==========================================
-# 2. DASHBOARD
-# ==========================================
 @login_required(login_url='login')
 def dashboard(request):
     user = request.user
@@ -111,14 +103,10 @@ def dashboard(request):
     return render(request, 'perpustakaan/dashboard.html', context)
 
 
-# ==========================================
-# 3. KATALOG & E-JOURNAL
-# ==========================================
 @login_required(login_url='login')
 @ensure_csrf_cookie
 def katalog_view(request):
-    """Data buku diambil browser langsung dari Open Library (lihat static/js/buku.js).
-    Django hanya mengirim daftar kategori dan buku yang sudah di-bookmark user."""
+
     context = {
         'user': request.user,
         'kategori_list': KATEGORI,
@@ -132,13 +120,12 @@ def katalog_view(request):
     return render(request, 'perpustakaan/katalog.html', context)
 
 
-# ---------- Detail buku, pinjam, bookmark ----------
 def _bersih(teks, panjang):
     return (teks or '').strip()[:panjang]
 
 
 def _pastikan_buku(request, olid):
-    """Ambil BukuDigital dari database; kalau belum ada, buat dari data yang dikirim browser."""
+
     d = request.POST
     buku = BukuDigital.objects.filter(pk=olid).first()
     if buku:
@@ -250,9 +237,6 @@ def ejournal_view(request):
     return render(request, 'perpustakaan/ejournal.html', {'user': request.user})
 
 
-# ==========================================
-# 4. PEMINJAMAN & AKSI KEMBALIKAN
-# ==========================================
 @login_required(login_url='login')
 def peminjaman_view(request):
     daftar_pinjaman = Peminjaman.objects.filter(user=request.user, status='Dibaca').order_by('-tanggal_pinjam')
@@ -281,9 +265,6 @@ def kembalikan_buku(request, pinjaman_id):
     return redirect('peminjaman')
 
 
-# ==========================================
-# 5. BOOKMARKS & API HAPUS BOOKMARK
-# ==========================================
 @login_required(login_url='login')
 def bookmarks_view(request):
     daftar_bookmark = Bookmark.objects.filter(user=request.user).order_by('-tanggal_disimpan')
@@ -304,10 +285,6 @@ def hapus_bookmark_api(request, bookmark_id):
     except Bookmark.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
 
-
-# ==========================================
-# 6. RIWAYAT PEMINJAMAN
-# ==========================================
 @login_required(login_url='login')
 def riwayat_view(request):
     riwayat_list = Peminjaman.objects.filter(user=request.user).order_by('-tanggal_pinjam')

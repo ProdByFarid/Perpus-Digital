@@ -13,7 +13,7 @@
 </head>
 <body class="app-body">
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -35,11 +35,11 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <!-- MAIN CONTENT -->
+    
+    
     <div class="main-content">
 
-        <!-- Header -->
+        
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / ANGGOTA</h4>
@@ -55,10 +55,8 @@
             </div>
         </div>
 
-        <!-- Tabel Riwayat -->
         <div class="riwayat-container">
-
-            <!-- Header Kolom -->
+            
             <div class="riwayat-header">
                 <div>Buku</div>
                 <div>Tanggal Pinjam</div>
@@ -70,7 +68,7 @@
             {% if riwayat_list %}
                 {% for item in riwayat_list %}
                 <div class="riwayat-row">
-                    <!-- Kolom Buku -->
+                    
                     <div class="history-book-info">
                         {% if item.buku_digital %}
                             <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}" 
@@ -89,17 +87,17 @@
                         {% endif %}
                     </div>
 
-                    <!-- Tanggal Pinjam -->
+                    
                     <div class="history-date">
                         {{ item.tanggal_pinjam|date:"d M Y" }}
                     </div>
 
-                    <!-- Tanggal Kembali -->
+                    
                     <div class="history-date">
                         {{ item.tanggal_kembali|date:"d M Y" }}
                     </div>
 
-                    <!-- Status -->
+                    
                     <div>
                         {% if item.status == 'Selesai' %}
                             <span class="badge-status selesai">Dikembalikan</span>
@@ -108,14 +106,14 @@
                         {% endif %}
                     </div>
 
-                    <!-- Lainnya -->
+                    
                     <div style="text-align: right;">
                         <a href="#" class="link-lainnya">Detail</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <!-- Empty State -->
+                
                 <div class="empty-state">
                     <i class="far fa-clock"></i>
                     <h3>Belum ada riwayat</h3>
@@ -126,7 +124,7 @@
         </div>
 </div>
 
-    <!-- MODAL DETAIL (Muncul saat klik "Lainnya") -->
+    
     <div class="modal-overlay" id="detail-modal">
         <div class="modal-box">
             <h3 id="modal-judul">Judul Buku</h3>

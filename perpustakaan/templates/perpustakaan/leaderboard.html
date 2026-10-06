@@ -15,7 +15,7 @@
 </head>
 <body class="app-body">
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -37,10 +37,10 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="main-content">
         
-        <!-- Header -->
+        
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / ANGGOTA</h4>
@@ -54,12 +54,12 @@
             </div>
         </div>
 
-        <!-- PODIUM TOP 3 -->
+        
         <div class="podium-container">
             <div class="podium-title">TOP 3 BULAN INI</div>
             <div class="podium-wrapper">
                 
-                <!-- Rank 2 (Kiri) -->
+                
                 {% if podium.rank2 %}
                 <div class="podium-step step-2">
                     <div class="podium-avatar">{{ podium.rank2.username|make_list|first|upper }}</div>
@@ -69,7 +69,7 @@
                 </div>
                 {% endif %}
 
-                <!-- Rank 1 (Tengah) -->
+                
                 {% if podium.rank1 %}
                 <div style="position: relative;">
                     <i class="fas fa-star" style="color: #D4F838; font-size: 24px; position: absolute; top: -35px; left: 50%; transform: translateX(-50%);"></i>
@@ -82,7 +82,7 @@
                 </div>
                 {% endif %}
 
-                <!-- Rank 3 (Kanan) -->
+                
                 {% if podium.rank3 %}
                 <div class="podium-step step-3">
                     <div class="podium-avatar">{{ podium.rank3.username|make_list|first|upper }}</div>
@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        <!-- LIST RANK 4 KE BAWAH -->
+        
         <div class="leaderboard-list">
             {% for lb in list_users %}
             <div class="lb-row">
@@ -104,7 +104,7 @@
                 
                 <div class="lb-details">
                     <h3>{{ lb.user.username }}</h3>
-                    <!-- Progress Bar Berdasarkan Maksimal EXP -->
+                    
                     <div class="lb-progress-bg">
                         <div class="lb-progress-fill" style="--width: {{ lb.percentage|floatformat:0 }}%;"></div>
                     </div>
@@ -115,7 +115,7 @@
                 </div>
             </div>
             {% empty %}
-            <!-- Muncul jika user yang daftar kurang dari 4 orang -->
+            
             <div style="text-align: center; padding: 20px; color: #8A8A7A; font-size: 14px;">
                 Belum ada pembaca lain di peringkat ini.
             </div>

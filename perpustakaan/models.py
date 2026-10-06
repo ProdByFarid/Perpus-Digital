@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
-# ====================== ABSTRACT CLASS ======================
+# ABSTRACT CLASS 
 class ItemKatalog(models.Model):
     id_item = models.CharField(max_length=20, unique=True, primary_key=True)
     judul = models.CharField(max_length=255)
@@ -14,7 +14,6 @@ class ItemKatalog(models.Model):
         abstract = True  # Pilar Abstraction OOP
 
 
-# ====================== BUKU DIGITAL ======================
 # id_item diisi OLID dari Open Library (contoh: OL45883W)
 class BukuDigital(ItemKatalog):
     link_unduh = models.URLField(default="https://example.com")
@@ -37,7 +36,6 @@ class Jurnal(ItemKatalog):
         return f"[Jurnal] {self.judul}"
 
 
-# ====================== PEMINJAMAN / RIWAYAT BACA ======================
 class Peminjaman(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -66,7 +64,6 @@ class Bookmark(models.Model):
         return f"{self.user.username} saved {item}"
 
 
-# ====================== USER + GAMIFIKASI ======================
 class CustomUser(AbstractUser):
     is_admin = models.BooleanField(default=False)
     is_member = models.BooleanField(default=True)

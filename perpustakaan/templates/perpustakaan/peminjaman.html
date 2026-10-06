@@ -15,7 +15,7 @@
 </head>
 <body class="app-body">
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="main-content">
         
         <div class="top-nav">
@@ -53,18 +53,18 @@
             </div>
         </div>
 
-        <!-- Banner Hitam Peminjaman -->
+        
         <div class="hero-banner-small">
             <h4>BUKU AKTIF</h4>
             <h2>{{ total_pinjaman }} buku sedang kamu pinjam</h2>
             <p>Semua buku dapat dipinjam selama 14 hari.</p>
         </div>
 
-        <!-- Daftar Buku Dipinjam -->
+        
         <div class="loan-list">
             {% for item in daftar_pinjaman %}
             <div class="loan-card">
-                <!-- Cover: Ambil dari Buku Digital atau Jurnal (tergantung mana yang tidak null) -->
+                
                 {% if item.buku_digital %}
                     <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}" alt="Cover" class="loan-cover">
                 {% elif item.jurnal %}
@@ -87,12 +87,12 @@
 
                 <div class="loan-actions">
                     <button class="btn-outline">Perpanjang</button>
-                    <!-- Tombol kembalikan memicu JS Alert sebelum diarahkan ke URL Backend -->
+                    
                     <a href="{% url 'kembalikan_buku' item.id %}" class="btn-outline" style="border: 1px solid #dc2626; color: #dc2626;" onclick="confirmReturn(event, '{% if item.buku_digital %}{{ item.buku_digital.judul }}{% else %}{{ item.jurnal.judul }}{% endif %}')">Kembalikan</a>
                 </div>
             </div>
             {% empty %}
-            <!-- State Kosong jika tidak ada pinjaman -->
+            
             <div style="text-align: center; padding: 50px; background: white; border-radius: 12px;">
                 <i class="fas fa-box-open fa-3x" style="color:#E5E5D8; margin-bottom:15px;"></i>
                 <h3 style="color:#121824;">Tidak ada buku yang sedang dipinjam.</h3>

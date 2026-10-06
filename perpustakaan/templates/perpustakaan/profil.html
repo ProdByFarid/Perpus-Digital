@@ -15,7 +15,7 @@
 </head>
 <body class="app-body">
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -25,7 +25,7 @@
             <li><a href="{% url 'bookmarks' %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
             <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
             <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
-            <!-- Active pindah ke Profil -->
+            
             <li><a href="{% url 'profil' %}" class="active"><i class="fas fa-user"></i> Profil</a></li>
         </ul>
         
@@ -38,10 +38,10 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="main-content">
         
-        <!-- Header -->
+        
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / ANGGOTA</h4>
@@ -57,9 +57,9 @@
 
         <div class="profile-container">
             
-            <!-- KARTU KIRI: INFO & PENCAPAIAN -->
+            
             <div class="profile-card">
-                <!-- Background Cover -->
+                
                 <div class="profile-header-bg"
                     {% if user.foto_background %}style="background: url('{{ user.foto_background.url }}') center/cover;"{% endif %}>
                 </div>
@@ -68,14 +68,14 @@
                     
                     <div class="profile-name-row">
                         <div>
-                            <!-- Foto Profil -->
+                            
                             {% if user.foto_profil %}
                                 <img src="{{ user.foto_profil.url }}" alt="Profile" class="profile-avatar-large" style="object-fit: cover; border-radius: 50%; padding: 0;">
                             {% else %}
                                 <div class="profile-avatar-large">{{ user.nama_tampilan|make_list|first|upper }}</div>
                             {% endif %}
                             
-                            <!-- Nama Tampilan (Bisa diubah) dan NIM (Tetap) -->
+                            
                             <h2>{{ user.nama_tampilan }}</h2>
                             <p style="font-weight: bold; color: #121824; font-size: 13px; margin-top: 5px;">NIM: {{ user.username }}</p>
                             <p>Anggota sejak {{ user.date_joined|date:"F Y" }}</p>
@@ -85,7 +85,7 @@
                         </div>
                     </div>
 
-                    <!-- ... (Sisa badges achievement biarkan saja sama) ... -->
+                    
                     <div class="profile-status-badges">
                         <span class="p-badge active">Anggota aktif</span>
                         <span class="p-badge count">{{ total_dibaca }} buku dibaca</span>
@@ -93,7 +93,7 @@
                 </div>
             </div>
 
-            <!-- KARTU KANAN: FORM PENGATURAN AKUN -->
+            
             <div class="settings-card">
                 <div class="settings-header">
                     <div>
@@ -111,7 +111,7 @@
                     {% endfor %}
                 {% endif %}
 
-                <!-- TAMBAHKAN enctype="multipart/form-data" UNTUK UPLOAD FILE -->
+                
                 <form method="POST" class="settings-form" enctype="multipart/form-data">
                     {% csrf_token %}
                     

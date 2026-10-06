@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    <!-- SIDEBAR -->
+    
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="#" class="active"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="main-content">
         
         <div class="top-nav">
@@ -49,7 +49,7 @@
             <div class="nav-actions">
                 <i class="far fa-bell"></i>
                 <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
-                <!-- Tambahan tombol logout biar mudah -->
+                
                 <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
@@ -123,7 +123,7 @@
                     <h4>Pilihan Untukmu</h4>
                     <h2 id="rec-title">Rekomendasi Minggu Ini</h2>
                 </div>
-                <a href="#">LIHAT SEMUA <i class="fas fa-arrow-right"></i></a>
+                <a href="{% url 'katalog' %}">LIHAT SEMUA <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="book-grid" id="book-grid-container">
                 <p>Loading...</p>
