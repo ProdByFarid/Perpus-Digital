@@ -10,6 +10,7 @@ urlpatterns = [
     # Katalog + detail buku
     path('katalog/', views.katalog_view, name='katalog'),
     path('buku/<str:olid>/', views.buku_detail, name='buku_detail'),
+    path('baca/<str:olid>/', views.baca_buku, name='baca_buku'),
     path('buku/<str:olid>/pinjam/', views.pinjam_buku, name='pinjam_buku'),
     path('buku/<str:olid>/bookmark/', views.toggle_bookmark, name='toggle_bookmark'),
 

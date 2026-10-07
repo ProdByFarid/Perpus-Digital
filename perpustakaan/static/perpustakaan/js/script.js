@@ -3,75 +3,10 @@ const OL_SEARCH = 'https://openlibrary.org/search.json';
 const OL_FIELDS = 'key,title,author_name,first_publish_year,cover_i,ia,has_fulltext,ratings_average,want_to_read_count';
 const NO_COVER = 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300';
 
+// (Dashboard & katalog sekarang ada di buku.js)
 function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-// Cover lewat ID internal (tidak kena rate limit seperti ISBN)
-function olCover(coverId, size = 'M') {
-    return coverId ? `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg` : NO_COVER;
-}
-
-async function olSearch(params) {
-    const qs = new URLSearchParams({ fields: OL_FIELDS, limit: 8, ...params });
-    const res = await fetch(`${OL_SEARCH}?${qs}`);
-    if (!res.ok) throw new Error('Open Library error ' + res.status);
-    const data = await res.json();
-    return data.docs || [];
-}
-
-function renderBooks(container, books) {
-    if (!books.length) {
-        container.innerHTML = '<p>Buku tidak ditemukan.</p>';
-        return;
-    }
-    container.innerHTML = books.map(b => {
-        const rating = b.ratings_average ? b.ratings_average.toFixed(1) : '-';
-        const wants = b.want_to_read_count ?? 0;
-        return `
-        <div class="book-card" onclick="window.open('https://openlibrary.org${esc(b.key)}','_blank')">
-            <img src="${olCover(b.cover_i)}" alt="Cover ${esc(b.title)}" class="book-cover">
-            <div class="book-info">
-                <p class="type">Buku Digital</p>
-                <h3>${esc((b.title || 'Tanpa judul').substring(0, 40))}</h3>
-                <p class="author">${esc((b.author_name?.[0] || 'Unknown').substring(0, 24))}</p>
-                <span class="book-rating">
-                    <i class="fas fa-star"></i> ${rating} • <i class="fas fa-bookmark"></i> ${wants}
-                </span>
-                <i class="fas fa-heart heart"></i>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// Rekomendasi dashboard + search bar
-async function fetchEngineeringBooks() {
-    const container = document.getElementById('book-grid-container');
-    if (!container) return; // hanya jalan di dashboard
-
-    try {
-        renderBooks(container, await olSearch({ q: 'subject:engineering', sort: 'rating' }));
-    } catch (e) {
-        console.error(e);
-        container.innerHTML = '<p>Gagal memuat data dari Open Library.</p>';
-    }
-
-    const input = document.getElementById('hero-search');
-    if (input) {
-        input.addEventListener('keydown', async (e) => {
-            if (e.key !== 'Enter') return;
-            const q = input.value.trim();
-            if (!q) return;
-            document.getElementById('rec-title').textContent = `Hasil pencarian: "${q}"`;
-            container.innerHTML = '<p>Mencari...</p>';
-            try {
-                renderBooks(container, await olSearch({ q }));
-            } catch (err) {
-                container.innerHTML = '<p>Gagal mencari.</p>';
-            }
-        });
-    }
 }
 
 // 2. FUNGSI UNTUK E-JOURNAL (Artikel dari OpenAlex API)
@@ -130,7 +65,6 @@ async function fetchJournals() {
 
 // 3. JALANKAN SEMUA FUNGSI SAAT HALAMAN DIMUAT
 document.addEventListener('DOMContentLoaded', () => {
-    fetchEngineeringBooks();
     fetchJournals();
 });
 
@@ -236,4 +170,78 @@ async function tampilkanHasil(iaId, q) {
     return (data.matches || []).slice(0, 5).map(m =>
         esc(m.text).replace(/\{\{\{/g, '<mark>').replace(/\}\}\}/g, '</mark>')
     );
+}
+
+async function fetchKatalogBuku(keyword = 'engineering') {
+    const container = document.getElementById('book-grid-container');
+    if (!container) return;
+
+    // Pakai Google Books API + Filter Free Ebooks
+    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${keyword}&filter=free-ebooks&maxResults=10`;
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Gagal fetch Google Books');
+
+        const data = await response.json();
+        const items = data.items || [];
+
+        if (items.length === 0) {
+            container.innerHTML = '<p style="grid-column: span 5; text-align: center;">Tidak ada e-book gratis ditemukan.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            const info = item.volumeInfo;
+            const access = item.accessInfo;
+
+            const idBuku = item.id;
+            const title = (info.title || 'Tanpa Judul').substring(0, 35);
+            const author = (info.authors ? info.authors[0] : 'Unknown').substring(0, 25);
+            const year = (info.publishedDate || '2024').substring(0, 4);
+            
+            // Ambil gambar cover Google Books (Ubah http jadi https agar aman)
+            const coverUrl = info.imageLinks?.thumbnail 
+                ? info.imageLinks.thumbnail.replace('http:', 'https:') 
+                : 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300';
+            
+            // Link Baca Gratis Google Web Reader
+            const readLink = access.webReaderLink || info.previewLink || '#';
+
+            // HTML Card
+            const cardHtml = `
+                <div class="book-card" onclick="window.location.href='/buku/${idBuku}/'">
+                    <img src="${coverUrl}" alt="Cover" class="book-cover">
+                    <div class="book-info">
+                        <p class="type" style="color:#2E7D32; font-weight:bold;">Google E-Book</p>
+                        <h3>${title}</h3>
+                        <p class="author">${author} • ${year}</p>
+                        <span class="book-rating"><i class="fas fa-star"></i> 4.8  •  <i class="fas fa-eye"></i> Free Read</span>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+            
+            // Penting: Kirim data buku ini ke backend via AJAX saat card diklik agar tersimpan di Database
+            simpanBukuKeDatabase(idBuku, title, author, year, coverUrl, readLink);
+        });
+
+    } catch (error) {
+        console.error('API Error:', error);
+    }
+}
+
+// Fungsi AJAX untuk otomatis mendaftarkan buku API ke Database Django
+function simpanBukuKeDatabase(id, judul, penulis, tahun, cover, linkBaca) {
+    const formData = new FormData();
+    formData.append('judul', judul);
+    formData.append('penulis', penulis);
+    formData.append('tahun', tahun);
+    formData.append('cover', cover);
+    formData.append('link_baca', linkBaca);
+    
+    // Kirim diam-diam ke backend saat buku dirender (Sesuaikan dengan nama view pengamananmu jika ada)
+    // fetch(`/buku/${id}/`, { method: 'POST', body: formData, headers: {'X-CSRFToken': getCookie('csrftoken')} });
 }

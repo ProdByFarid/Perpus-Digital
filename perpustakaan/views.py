@@ -12,7 +12,7 @@ from django.contrib.auth import update_session_auth_hash
 import re
 
 MASA_PINJAM_HARI = 14
-OLID_RE = re.compile(r'^OL\d+W$')
+ITEM_ID_RE = re.compile(r'^[\w-]+$')
 COVER_PREFIX = 'https://covers.openlibrary.org/'
 
 # (nilai subject di Open Library, label yang tampil)
@@ -125,7 +125,6 @@ def _bersih(teks, panjang):
 
 
 def _pastikan_buku(request, olid):
-
     d = request.POST
     buku = BukuDigital.objects.filter(pk=olid).first()
     if buku:
@@ -137,16 +136,17 @@ def _pastikan_buku(request, olid):
 
     judul = _bersih(d.get('judul'), 255)
     if not judul:
-        return None  # data buku belum sampai dari browser
+        return None  
 
     cover = _bersih(d.get('cover'), 200)
-    if not cover.startswith(COVER_PREFIX):
-        cover = ''
     ia = _bersih(d.get('ia'), 100)
-    if not re.match(r'^[A-Za-z0-9._-]+$', ia):
-        ia = ''
     tahun = ''.join(ch for ch in _bersih(d.get('tahun'), 10) if ch.isdigit())[:4]
-    link = f'https://archive.org/details/{ia}' if ia else f'https://openlibrary.org/works/{olid}'
+    
+    # PERUBAHAN: Tangkap link_baca yang dikirim dari JS Google Books
+    link_baca = _bersih(d.get('link_baca'), 500)
+    if not link_baca:
+        # Cadangan jika dari Open Library
+        link_baca = f'https://archive.org/details/{ia}' if ia else f'https://openlibrary.org/works/{olid}'
 
     return BukuDigital.objects.create(
         id_item=olid,
@@ -156,7 +156,7 @@ def _pastikan_buku(request, olid):
         cover=cover or None,
         deskripsi=_bersih(d.get('deskripsi'), 20000),
         ia_id=ia,
-        link_unduh=link,
+        link_unduh=link_baca, # Menyimpan Link Web Reader Google di sini
     )
 
 
@@ -164,7 +164,7 @@ def _pastikan_buku(request, olid):
 @ensure_csrf_cookie
 def buku_detail(request, olid):
     """Kerangka halaman. Isi buku (judul, deskripsi, dll) diisi browser dari Open Library."""
-    if not OLID_RE.match(olid):
+    if not ITEM_ID_RE.match(olid):
         raise Http404
 
     user = request.user
@@ -192,9 +192,27 @@ def buku_detail(request, olid):
 
 
 @login_required(login_url='login')
+def baca_buku(request, olid):
+    """Halaman baca. Hanya untuk buku yang sedang dipinjam user."""
+    if not ITEM_ID_RE.match(olid):
+        raise Http404
+    pinjam = (Peminjaman.objects.filter(user=request.user, buku_digital_id=olid, status='Dibaca')
+            .select_related('buku_digital').first())
+    if not pinjam:
+        messages.info(request, 'Pinjam buku ini dulu supaya bisa dibaca.')
+        return redirect('buku_detail', olid=olid)
+    return render(request, 'perpustakaan/baca.html', {
+        'user': request.user,
+        'pinjam': pinjam,
+        'buku': pinjam.buku_digital,
+        'jatuh_tempo': pinjam.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI),
+    })
+
+
+@login_required(login_url='login')
 @require_POST
 def pinjam_buku(request, olid):
-    if not OLID_RE.match(olid):
+    if not ITEM_ID_RE.match(olid):
         raise Http404
     user = request.user
 
@@ -219,7 +237,7 @@ def pinjam_buku(request, olid):
 @login_required(login_url='login')
 @require_POST
 def toggle_bookmark(request, olid):
-    if not OLID_RE.match(olid):
+    if not ITEM_ID_RE.match(olid):
         raise Http404
     ada = Bookmark.objects.filter(user=request.user, buku_digital_id=olid).first()
     if ada:

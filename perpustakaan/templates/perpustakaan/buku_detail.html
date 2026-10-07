@@ -5,14 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Buku</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1000">
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1001">
     <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
-    <script src="{% static 'perpustakaan/js/buku.js' %}?v=2" defer></script>
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
-    </style>
+    <script src="{% static 'perpustakaan/js/buku.js' %}?v=3" defer></script>
 </head>
 <body class="app-body">
 
@@ -56,7 +55,14 @@
         
         <section class="bd-hero">
             <div class="bd-cover-wrap">
+                {% if pinjam_aktif %}
+                <a href="{% url 'baca_buku' olid %}" class="bd-cover-link" title="Klik untuk membaca">
+                    <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400" alt="" class="bd-cover" id="bd-cover">
+                    <span class="bd-cover-hint"><i class="fas fa-book-open"></i> Baca</span>
+                </a>
+                {% else %}
                 <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400" alt="" class="bd-cover" id="bd-cover">
+                {% endif %}
             </div>
 
             <div class="bd-main">
@@ -68,6 +74,7 @@
 
                 <div class="bd-actions">
                     {% if pinjam_aktif %}
+                        <a href="{% url 'baca_buku' olid %}" class="bd-btn bd-btn-primary"><i class="fas fa-book-open"></i> Baca sekarang</a>
                         <a href="{% url 'peminjaman' %}" class="bd-btn bd-btn-done"><i class="fas fa-check"></i> Sedang dipinjam</a>
                     {% elif slot_penuh %}
                         <button type="button" class="bd-btn bd-btn-disabled" disabled><i class="fas fa-ban"></i> Batas pinjam tercapai</button>
