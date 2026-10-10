@@ -1,7 +1,7 @@
 from datetime import timedelta
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, Http404
@@ -92,6 +92,8 @@ def dashboard(request):
     sedang_dipinjam = Peminjaman.objects.filter(user=user, status='Dibaca').count()
     total_dibaca = Peminjaman.objects.filter(user=user, status='Selesai').count()
     bacaan_terakhir = Peminjaman.objects.filter(user=user, status='Dibaca').last()
+    User = get_user_model()
+    peringkat = User.objects.filter(exp__gt=request.user.exp).count()+1
 
     context = {
         'user': user,
@@ -99,6 +101,7 @@ def dashboard(request):
         'total_dibaca': total_dibaca,
         'bookmarks': Bookmark.objects.filter(user=user).count(),
         'bacaan_terakhir': bacaan_terakhir,
+        'peringkat': peringkat,
     }
     return render(request, 'perpustakaan/dashboard.html', context)
 
@@ -262,10 +265,19 @@ def peminjaman_view(request):
     for pinjaman in daftar_pinjaman:
         pinjaman.jatuh_tempo = pinjaman.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI)
 
+    #info slot peminjaman
+    batas_pinjam = request.user.max_loans
+    jumlah_aktif = Peminjaman.objects.filter(user=request.user, status='Dibaca').count()
+    sisa_slot = max(batas_pinjam - jumlah_aktif, 0)
+
     context = {
         'user': request.user,
         'daftar_pinjaman': daftar_pinjaman,
         'total_pinjaman': daftar_pinjaman.count(),
+        'batas_pinjam': batas_pinjam,
+        'jumlah_aktif': jumlah_aktif,
+        'sisa_slot': sisa_slot,
+        'slot_range': range(batas_pinjam),
     }
     return render(request, 'perpustakaan/peminjaman.html', context)
 
@@ -316,7 +328,6 @@ def riwayat_view(request):
         'total_aktivitas': riwayat_list.count(),
     }
     return render(request, 'perpustakaan/riwayat.html', context)
-
 @login_required(login_url='login')
 def leaderboard_view(request):
     # Ambil semua member, urutkan berdasarkan EXP terbanyak
@@ -360,6 +371,15 @@ def profil_view(request):
 
     if request.method == 'POST':
         # Ambil data dari form HTML
+        if request.POST.get('hapus_foto'):
+            if user.foto_profil:
+                user.foto_profil.delete(save=False)
+                user.foto_profil = None
+                user.save()
+                messages.success(request, "Foto Profil berhasil dihapus!")
+            else:
+                messages.error(request, "Tidak ada Foto Profil untuk dihapus.")
+            return redirect('profil')
         nama_baru = request.POST.get('nama_tampilan')
         email_baru = request.POST.get('email')
         pass_lama = request.POST.get('password_lama')
