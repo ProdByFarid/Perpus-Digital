@@ -14,14 +14,25 @@
 </head>
 <body>
 
-        <div class="app-layout" id="appLayout">
-        <div class="sidebar">
-            <div class="sidebar-brand">
-                <img src="{% static 'perpustakaan/img/logo.svg' %}" alt="Logo Lentera" class="sidebar-logo">
-                <div>
-                    <h2>lentera<span>.</span></h2>
-                    <p>LAYANAN REFERENSI TEKNIK</p>
-                </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}" class="active"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}" class="{% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <!-- Sidebar Profile Sinkron -->
+        <div class="sidebar-profile">
+            <img src="{% if user.foto_profil %}{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824{% endif %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+            <div>
+                <h4>{{ user.nama_tampilan|default:user.username }}</h4>
+                <p>Anggota</p>
             </div>
             
             <ul class="sidebar-menu">
@@ -40,48 +51,28 @@
                 <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
             </ul>
 
-            <div class="sidebar-profile">
-                <div class="avatar-circle">
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Top Nav Sinkron -->
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>{{ user.username }} / ANGGOTA</h4>
+                <h1 class="page-title-space">Peminjaman</h1>
+                <p>Siap menemukan bacaan baru hari ini?</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <a href="{% url 'profil' %}" style="display: inline-block;">
                     {% if user.foto_profil %}
-                        <img src="{{ user.foto_profil.url }}" alt="Avatar">
+                        <img src="{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #D4F838;">
                     {% else %}
-                        {{ user.nama_tampilan|default:user.username|slice:2|upper }}
+                        <div class="avatar-circle" style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; background: #D4F838; color: #1e293b; font-weight: bold;">{{ user.username|make_list|first|upper }}</div>
                     {% endif %}
-                </div>
-                <div>
-                    <h4>{{ user.nama_tampilan|default:user.username }}</h4>
-                    <p>User / Anggota</p>
-                </div>
+                </a>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
-
-        <div class="main-content">
-            <div class="peminjaman-header">
-                <div class="top-nav">
-                    <div class="top-nav-left">
-                        <button id="menuButton" class="menu-button" type="button" aria-label="Buka atau tutup menu">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div class="top-divider"></div>
-                        <div class="greeting">
-                            <h4>Lentera / Anggota</h4>
-                            <h1 class="page-title-space">Peminjaman</h1>
-                            <p>Temukan bacaan terbaikmu di sini.</p>
-                        </div>
-                    </div>
-                    <div class="nav-actions">
-                        <i class="far fa-bell"></i>
-                        <div class="avatar-circle">
-                            {% if user.foto_profil %}
-                                <img src="{{ user.foto_profil.url }}" alt="Avatar">
-                            {% else %}
-                                {{ user.nama_tampilan|default:user.username|slice:2|upper }}
-                            {% endif %}
-                        </div>
-                        <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
-                    </div>
-                </div>
-            </div>
 
         <div class="hero-banner-small">
             <h4>BUKU AKTIF</h4>
@@ -89,18 +80,6 @@
             <p>Semua buku dapat dipinjam selama 14 hari.</p>
         </div>
 
-        <div class="slot-info">
-            <div class="slot-text">
-                <h4>Slot Peminjaman</h4>
-                <p>Sisa <strong>{{ sisa_slot }}</strong> dari {{ batas_pinjam }} slot</p>
-            </div>
-        </div>
-        <div class="slot-dots">
-            {% for i in slot_range %}
-                <span class="slot-dot{% if forloop.counter <= jumlah_aktif %} used{% endif %}"></span>
-            {% endfor %}
-        </div>
-        
         <div class="loan-list">
             {% for item in daftar_pinjaman %}
             <div class="loan-card">

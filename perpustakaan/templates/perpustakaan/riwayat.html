@@ -11,42 +11,53 @@
     <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1020">
     <script src="{% static 'perpustakaan/js/script.js' %}?v=2" defer></script>
 </head>
-<body>
+<body class="app-body">
 
-    <div class="app-layout" id="appLayout">
-
-        <div class="sidebar">
-            <div class="sidebar-brand">
-                <img src="{% static 'perpustakaan/img/logo.svg' %}" alt="Logo Lentera" class="sidebar-logo">
-                <div>
-                    <h2>lentera<span>.</span></h2>
-                    <p>LAYANAN REFERENSI TEKNIK</p>
-                </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+            <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+            <li><a href="{% url 'bookmarks' %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
+            <li><a href="{% url 'riwayat' %}" class="active"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+        </ul>
+        
+        <!-- Sidebar Profile Sinkron -->
+        <div class="sidebar-profile">
+            <img src="{% if user.foto_profil %}{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824{% endif %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+            <div>
+                <h4>{{ user.nama_tampilan|default:user.username }}</h4>
+                <p>Anggota</p>
             </div>
+        </div>
+    </div>
 
-            <ul class="sidebar-menu">
-                <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
-                <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
-                <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
-                <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
-                <li><a href="{% url 'bookmarks' %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
-                <li><a href="{% url 'riwayat' %}" class="active"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
-                <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
-                <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
-            </ul>
+    <!-- Main Content -->
+    <div class="main-content">
 
-            <div class="sidebar-profile">
-                <div class="avatar-circle">
+        <!-- Top Nav Sinkron -->
+        <div class="top-nav">
+            <div class="greeting">
+                <h4>{{ user.username }} / ANGGOTA</h4>
+                <h1 class="page-title-space">Riwayat Peminjaman</h1>
+                <p>Siap menemukan bacaan baru hari ini?</p>
+            </div>
+            <div class="nav-actions">
+                <i class="far fa-bell"></i>
+                <a href="{% url 'profil' %}" style="display: inline-block;">
                     {% if user.foto_profil %}
-                        <img src="{{ user.foto_profil.url }}" alt="Avatar">
+                        <img src="{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #D4F838;">
                     {% else %}
-                        {{ user.nama_tampilan|default:user.username|slice:2|upper }}
+                        <div class="avatar-circle" style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; background: #D4F838; color: #1e293b; font-weight: bold;">{{ user.username|make_list|first|upper }}</div>
                     {% endif %}
-                </div>
-                <div>
-                    <h4>{{ user.nama_tampilan|default:user.username }}</h4>
-                    <p>User / Anggota</p>
-                </div>
+                </a>
+                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
         </div>
 
@@ -83,61 +94,57 @@
 
             <div class="riwayat-container">
 
-                <div class="riwayat-thead">
-                    <div>Buku</div>
-                    <div>Tanggal Pinjam</div>
-                    <div>Tanggal Kembali</div>
-                    <div>Status</div>
+                    <div class="history-date">
+                        {{ item.tanggal_pinjam|date:"d M Y" }}
+                    </div>
+
+                    <div class="history-date">
+                        {{ item.tanggal_kembali|date:"d M Y" }}
+                    </div>
+
+                    <div>
+                        {% if item.status == 'Selesai' %}
+                            <span class="badge-status selesai">Dikembalikan</span>
+                        {% else %}
+                            <span class="badge-status aktif">Sedang Dibaca</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="text-align: right;">
+                        <a href="#" class="link-lainnya">Detail</a>
+                    </div>
                 </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="far fa-clock"></i>
+                    <h3>Belum ada riwayat</h3>
+                    <p>Buku yang sudah kamu kembalikan akan muncul di sini.</p>
+                </div>
+            {% endif %}
 
-                {% if riwayat_list %}
-                    {% for item in riwayat_list %}
-                    <div class="riwayat-row">
+        </div>
+    </div>
 
-                        <div class="history-book-info">
-                            {% if item.buku_digital %}
-                                <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}"
-                                    class="history-book-cover" alt="Cover">
-                                <div class="history-book-details">
-                                    <h4>{{ item.buku_digital.judul }}</h4>
-                                    <p>{{ item.buku_digital.penulis }} • {{ item.buku_digital.tahun_terbit }}</p>
-                                </div>
-                            {% elif item.jurnal %}
-                                <img src="https://images.unsplash.com/photo-1580536203673-93e150937a54?w=300"
-                                    class="history-book-cover" alt="Cover">
-                                <div class="history-book-details">
-                                    <h4>{{ item.jurnal.judul|truncatechars:40 }}</h4>
-                                    <p>{{ item.jurnal.penulis }} • {{ item.jurnal.tahun_terbit }}</p>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="history-date">
-                            {{ item.tanggal_pinjam|date:"d M Y" }}
-                        </div>
-
-                        <div class="history-date">
-                            {{ item.tanggal_kembali|date:"d M Y" }}
-                        </div>
-
-                        <div>
-                            {% if item.status == 'Selesai' %}
-                                <span class="badge-status selesai">Dikembalikan</span>
-                            {% else %}
-                                <span class="badge-status aktif">Sedang Dibaca</span>
-                            {% endif %}
-                        </div>
-
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <i class="far fa-clock"></i>
-                        <h3>Belum ada riwayat</h3>
-                        <p>Buku yang sudah kamu kembalikan akan muncul di sini.</p>
-                    </div>
-                {% endif %}
-
+    <!-- Modal Detail -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal-box">
+            <h3 id="modal-judul">Judul Buku</h3>
+            <p class="modal-sub" id="modal-penulis">Penulis</p>
+            
+            <hr class="modal-divider">
+            
+            <div class="modal-row">
+                <span>Tanggal Pinjam</span>
+                <span id="modal-pinjam">-</span>
+            </div>
+            <div class="modal-row">
+                <span>Tanggal Kembali</span>
+                <span id="modal-kembali">-</span>
+            </div>
+            <div class="modal-row">
+                <span>Progress Baca</span>
+                <span id="modal-progress">-</span>
             </div>
         </div>
 
