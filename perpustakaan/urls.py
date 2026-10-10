@@ -22,4 +22,7 @@ urlpatterns = [
     path('riwayat/', views.riwayat_view, name='riwayat'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path('profil/', views.profil_view, name='profil'),
+    
+    # Perbaikan nama URL di sini:
+    path('profil/<str:username>/', views.profil_user_detail_view, name='profil_user_detail'),
 ]

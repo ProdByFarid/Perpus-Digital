@@ -15,7 +15,7 @@
 </head>
 <body class="app-body">
 
-    
+    <!-- Sidebar -->
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -28,8 +28,9 @@
             <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
         </ul>
 
+        <!-- Sidebar Profile Sinkron -->
         <div class="sidebar-profile">
-            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <img src="{% if user.foto_profil %}{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824{% endif %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
             <div>
                 <h4>{{ user.nama_tampilan|default:user.username }}</h4>
                 <p>Anggota</p>
@@ -37,9 +38,10 @@
         </div>
     </div>
 
-    
+    <!-- Main Content -->
     <div class="main-content">
 
+        <!-- Top Nav Sinkron -->
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / ANGGOTA</h4>
@@ -48,12 +50,38 @@
             </div>
             <div class="nav-actions">
                 <i class="far fa-bell"></i>
-                <div class="avatar-circle">{{ user.nama_tampilan|default:user.username|make_list|first|upper }}</div>
+                <a href="{% url 'profil' %}" style="display: inline-block;">
+                    {% if user.foto_profil %}
+                        <img src="{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #D4F838;">
+                    {% else %}
+                        <div class="avatar-circle" style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; background: #D4F838; color: #1e293b; font-weight: bold;">{{ user.nama_tampilan|default:user.username|make_list|first|upper }}</div>
+                    {% endif %}
+                </a>
                 <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
 
-        
+        <!-- ================= POIN 1: REKOMENDASI BUKU HARIAN (Beda Tiap Hari) ================= -->
+        <div class="mb-4">
+            <h3 style="margin-bottom: 15px; font-family: 'Space Grotesk', sans-serif;"><i class="fas fa-calendar-day" style="color: #D4F838;"></i> Rekomendasi Buku Hari Ini</h3>
+            <div class="row" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+                {% for buku in buku_harian %}
+                <div class="card" style="min-width: 180px; flex: 0 0 180px; padding: 10px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    {% if buku.cover %}
+                        <img src="{{ buku.cover.url }}" alt="{{ buku.judul }}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px;">
+                    {% else %}
+                        <div style="width: 100%; height: 140px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Cover</div>
+                    {% endif %}
+                    <h5 style="font-size: 14px; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ buku.judul }}</h5>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 5px;">{{ buku.penulis }}</p>
+                </div>
+                {% empty %}
+                <p style="color: #64748b; font-size: 14px;">Belum ada rekomendasi buku harian.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Search & Filter Bar Bawaan -->
         <div class="search-filter-bar">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -76,16 +104,50 @@
             </label>
         </div>
 
-        
+        <!-- Chip Kategori Bawaan -->
         <div class="chip-row" id="chip-row">
             {% for nilai, label in kategori_list %}
             <button type="button" class="chip{% if nilai == default_kategori %} active{% endif %}" data-kategori="{{ nilai }}">{{ label }}</button>
             {% endfor %}
         </div>
 
+        <!-- ================= POIN 2: BUKU ADMIN BERDASARKAN KATEGORI ================= -->
+        <div class="my-5">
+            <h3 style="margin-bottom: 20px; font-family: 'Space Grotesk', sans-serif;"><i class="fas fa-layer-group" style="color: #3b82f6;"></i> Koleksi Buku Admin per Kategori</h3>
+            {% for nama_kategori, daftar_buku in buku_per_kategori.items %}
+                <div style="margin-bottom: 25px;">
+                    <h4 style="font-size: 18px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;">{{ nama_kategori }}</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                        {% for buku in daftar_buku %}
+                        <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
+                            <h5 style="font-size: 15px; margin-bottom: 5px;">{{ buku.judul }}</h5>
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 3px;">Penulis: {{ buku.penulis }}</p>
+                            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">Tahun: {{ buku.tahun_terbit }}</p>
+                            <a href="{% url 'buku_detail' buku.id_item %}" style="margin-top: auto; text-align: center; background: #0f172a; color: white; padding: 6px; border-radius: 6px; font-size: 13px; text-decoration: none;">Detail Buku</a>
+                        </div>
+                        {% empty %}
+                        <p style="color: #94a3b8; font-size: 13px; font-style: italic;">Tidak ada buku admin untuk kategori {{ nama_kategori }}.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- ================= POIN 3: BUKU RILIS TERBARU (Google Books API + API Key) ================= -->
+        <div class="my-5">
+            <h3 style="margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif;"><i class="fas fa-rocket" style="color: #10b981;"></i> Buku Rilis Terbaru (Google Books API)</h3>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">Menampilkan rilisan buku paling baru menggunakan parameter urutan terbaru.</p>
+            
+            <div id="container-buku-terbaru" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #64748b;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 10px;">Memuat buku rilis terbaru...</p>
+                </div>
+            </div>
+        </div>
+
         <h2 class="grid-title" id="grid-title"></h2>
 
-        
         <div class="catalog-grid" id="katalog-grid" data-default-kategori="{{ default_kategori }}"></div>
         {{ tersimpan_ids|json_script:"tersimpan-ids" }}
 
@@ -95,5 +157,49 @@
         <p class="ol-credit">Data buku dan sampul dari <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>.</p>
     </div>
 
+    <!-- Script Google Books API Terbaru dengan API Key milikmu -->
+    <script>
+        const API_KEY_GOOGLE = "AIzaSyAfzTur2ESes8umV6Bxe-OdK5hXOpAK7AU";
+
+        async function loadBukuApiTerbaru() {
+            const url = `https://www.googleapis.com/books/v1/volumes?q=computer+science&orderBy=newest&maxResults=8&key=${API_KEY_GOOGLE}`;
+            const container = document.getElementById('container-buku-terbaru');
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.items) {
+                    container.innerHTML = "";
+                    data.items.forEach(item => {
+                        const info = item.volumeInfo;
+                        const judul = info.title || "Tanpa Judul";
+                        const penulis = info.authors ? info.authors.join(", ") : "Tidak Diketahui";
+                        const tahun = info.publishedDate ? info.publishedDate.substring(0, 4) : "Terbaru";
+                        const cover = info.imageLinks ? info.imageLinks.thumbnail : "https://via.placeholder.com/150x200?text=No+Cover";
+                        const linkBaca = info.previewLink || "#";
+
+                        const cardHTML = `
+                            <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
+                                <img src="${cover}" alt="${judul}" style="width: 100%; height: 160px; object-fit: contain; margin-bottom: 10px; background: #f8fafc; border-radius: 6px;">
+                                <h5 style="font-size: 14px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${judul}">${judul}</h5>
+                                <p style="font-size: 12px; color: #64748b; margin-bottom: 3px;">Penulis: ${penulis}</p>
+                                <p style="font-size: 12px; color: #10b981; font-weight: 600; margin-bottom: 12px;">Rilis: ${tahun}</p>
+                                <a href="${linkBaca}" target="_blank" style="margin-top: auto; text-align: center; background: #2563eb; color: white; padding: 6px; border-radius: 6px; font-size: 13px; text-decoration: none;">Lihat Buku</a>
+                            </div>
+                        `;
+                        container.innerHTML += cardHTML;
+                    });
+                } else {
+                    container.innerHTML = `<p style="color: #dc2626;">Buku terbaru tidak ditemukan dari API.</p>`;
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data API:", error);
+                container.innerHTML = `<p style="color: #dc2626;">Gagal memuat data dari API.</p>`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadBukuApiTerbaru);
+    </script>
 </body>
 </html>

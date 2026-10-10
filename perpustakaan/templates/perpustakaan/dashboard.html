@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    
+    <!-- Sidebar -->
     <div class="sidebar">
         <ul class="sidebar-menu">
             <li><a href="#" class="active"><i class="fas fa-border-all"></i> Dashboard</a></li>
@@ -28,18 +28,20 @@
             <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
         </ul>
         
+        <!-- Sidebar Profile Sinkron -->
         <div class="sidebar-profile">
-            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824" alt="Avatar">
+            <img src="{% if user.foto_profil %}{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824{% endif %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
             <div>
-                <h4>{{ user.username }}</h4>
+                <h4>{{ user.nama_tampilan|default:user.username }}</h4>
                 <p>Anggota</p>
             </div>
         </div>
     </div>
 
-    
+    <!-- Main Content -->
     <div class="main-content">
         
+        <!-- Top Nav Sinkron -->
         <div class="top-nav">
             <div class="greeting">
                 <h4>{{ user.username }} / Anggota</h4>
@@ -48,8 +50,13 @@
             </div>
             <div class="nav-actions">
                 <i class="far fa-bell"></i>
-                <div class="avatar-circle">{{ user.username|make_list|first|upper }}</div>
-                
+                <a href="{% url 'profil' %}" style="display: inline-block;">
+                    {% if user.foto_profil %}
+                        <img src="{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #D4F838;">
+                    {% else %}
+                        <div class="avatar-circle" style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; background: #D4F838; color: #1e293b; font-weight: bold;">{{ user.username|make_list|first|upper }}</div>
+                    {% endif %}
+                </a>
                 <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
