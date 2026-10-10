@@ -4,77 +4,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Journal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Riwayat Peminjaman</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1006">
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1020">
     <script src="{% static 'perpustakaan/js/script.js' %}?v=2" defer></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300..700&family=Space+Grotesk:wght@300..700&display=swap');
-    </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <ul class="sidebar-menu">
-            <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
-            <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
-            <li><a href="{% url 'ejournal' %}" class="active"><i class="fas fa-file-alt"></i> E-journal</a></li>
-            <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
-            <li><a href="{% url 'bookmarks' %}" class="{% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
-            <li><a href="{% url 'riwayat' %}"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
-            <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
-            <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
-        </ul>
-        
-        <!-- Sidebar Profile Sinkron -->
-        <div class="sidebar-profile">
-            <img src="{% if user.foto_profil %}{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D4F838&color=121824{% endif %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-            <div>
-                <h4>{{ user.nama_tampilan|default:user.username }}</h4>
-                <p>Anggota</p>
-            </div>
-        </div>
-    </div>
+    <div class="app-layout" id="appLayout">
 
-    <!-- Main Content -->
-    <div class="main-content">
-        
-        <!-- Top Nav Sinkron -->
-        <div class="top-nav">
-            <div class="greeting">
-                <h4>{{ user.username }} / ANGGOTA</h4>
-                <h1 class="page-title-space">E-Journal</h1>
-                <p>Temukan artikel dan publikasi ilmiah terbaru.</p>
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <img src="{% static 'perpustakaan/img/logo.svg' %}" alt="Logo Lentera" class="sidebar-logo">
+                <div>
+                    <h2>lentera<span>.</span></h2>
+                    <p>LAYANAN REFERENSI TEKNIK</p>
+                </div>
             </div>
-            <div class="nav-actions">
-                <i class="far fa-bell"></i>
-                <a href="{% url 'profil' %}" style="display: inline-block;">
+
+            <ul class="sidebar-menu">
+                <li><a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> Dashboard</a></li>
+                <li><a href="{% url 'katalog' %}"><i class="fas fa-book"></i> Katalog Buku</a></li>
+                <li><a href="{% url 'ejournal' %}"><i class="fas fa-file-alt"></i> E-journal</a></li>
+                <li><a href="{% url 'peminjaman' %}"><i class="fas fa-book-reader"></i> Peminjaman</a></li>
+                <li><a href="{% url 'bookmarks' %}"><i class="fas fa-heart"></i> Bookmarks</a></li>
+                <li><a href="{% url 'riwayat' %}" class="active"><i class="fas fa-history"></i> Riwayat Peminjaman</a></li>
+                <li><a href="{% url 'leaderboard' %}"><i class="fas fa-trophy"></i> Top List Reader</a></li>
+                <li><a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil</a></li>
+            </ul>
+
+            <div class="sidebar-profile">
+                <div class="avatar-circle">
                     {% if user.foto_profil %}
-                        <img src="{{ user.foto_profil.url }}?v={{ user.last_login|date:'U' }}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #D4F838;">
+                        <img src="{{ user.foto_profil.url }}" alt="Avatar">
                     {% else %}
-                        <div class="avatar-circle" style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; background: #D4F838; color: #1e293b; font-weight: bold;">{{ user.username|make_list|first|upper }}</div>
+                        {{ user.nama_tampilan|default:user.username|slice:2|upper }}
                     {% endif %}
-                </a>
-                <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+                </div>
+                <div>
+                    <h4>{{ user.nama_tampilan|default:user.username }}</h4>
+                    <p>User / Anggota</p>
+                </div>
             </div>
         </div>
 
-        <div class="search-filter-bar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Cari judul atau penulis jurnal...">
+        <div class="main-content">
+
+            <div class="riwayat-header">
+                <div class="top-nav">
+                    <div class="top-nav-left">
+                        <button id="menuButton" class="menu-button" type="button" aria-label="Buka atau tutup menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="top-divider"></div>
+                        <div class="greeting">
+                            <h4>Lentera / Anggota</h4>
+                            <h1 class="page-title-space">Riwayat Peminjaman</h1>
+                            <p>Siap menemukan bacaan baru hari ini?</p>
+                        </div>
+                    </div>
+                    <div class="nav-actions">
+                        <i class="far fa-bell"></i>
+                        <div class="avatar-circle">
+                            {% if user.foto_profil %}
+                                <img src="{{ user.foto_profil.url }}" alt="Avatar">
+                            {% else %}
+                                {{ user.nama_tampilan|default:user.username|slice:2|upper }}
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-        <div class="journal-list" id="journal-list-container">
-            <div style="text-align: center; padding: 40px; color: #8A8A7A;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-                <p style="margin-top: 10px; font-size: 13px;">Menarik data Jurnal Engineering dari OpenAlex API...</p>
-            </div>
+            <div class="riwayat-container">
 
+                <div class="riwayat-thead">
+                    <div>Buku</div>
+                    <div>Tanggal Pinjam</div>
+                    <div>Tanggal Kembali</div>
+                    <div>Status</div>
+                </div>
+
+                {% if riwayat_list %}
+                    {% for item in riwayat_list %}
+                    <div class="riwayat-row">
+
+                        <div class="history-book-info">
+                            {% if item.buku_digital %}
+                                <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}"
+                                    class="history-book-cover" alt="Cover">
+                                <div class="history-book-details">
+                                    <h4>{{ item.buku_digital.judul }}</h4>
+                                    <p>{{ item.buku_digital.penulis }} • {{ item.buku_digital.tahun_terbit }}</p>
+                                </div>
+                            {% elif item.jurnal %}
+                                <img src="https://images.unsplash.com/photo-1580536203673-93e150937a54?w=300"
+                                    class="history-book-cover" alt="Cover">
+                                <div class="history-book-details">
+                                    <h4>{{ item.jurnal.judul|truncatechars:40 }}</h4>
+                                    <p>{{ item.jurnal.penulis }} • {{ item.jurnal.tahun_terbit }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="history-date">
+                            {{ item.tanggal_pinjam|date:"d M Y" }}
+                        </div>
+
+                        <div class="history-date">
+                            {{ item.tanggal_kembali|date:"d M Y" }}
+                        </div>
+
+                        <div>
+                            {% if item.status == 'Selesai' %}
+                                <span class="badge-status selesai">Dikembalikan</span>
+                            {% else %}
+                                <span class="badge-status aktif">Sedang Dibaca</span>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="far fa-clock"></i>
+                        <h3>Belum ada riwayat</h3>
+                        <p>Buku yang sudah kamu kembalikan akan muncul di sini.</p>
+                    </div>
+                {% endif %}
+
+            </div>
         </div>
+
     </div>
-
 </body>
 </html>
