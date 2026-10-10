@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1000">
-    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1020">
+    <script src="{% static 'perpustakaan/js/script.js' %}?v=2" defer></script>
 </head>
 <body class="app-body">
 
@@ -61,37 +61,38 @@
             </div>
         </div>
 
-        <div class="riwayat-container">
-            
+        <div class="main-content">
+
             <div class="riwayat-header">
-                <div>Buku</div>
-                <div>Tanggal Pinjam</div>
-                <div>Tanggal Kembali</div>
-                <div>Status</div>
-                <div style="text-align: right;">Lainnya</div>
+                <div class="top-nav">
+                    <div class="top-nav-left">
+                        <button id="menuButton" class="menu-button" type="button" aria-label="Buka atau tutup menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="top-divider"></div>
+                        <div class="greeting">
+                            <h4>Lentera / Anggota</h4>
+                            <h1 class="page-title-space">Riwayat Peminjaman</h1>
+                            <p>Siap menemukan bacaan baru hari ini?</p>
+                        </div>
+                    </div>
+                    <div class="nav-actions">
+                        <i class="far fa-bell"></i>
+                        <div class="avatar-circle">
+                            {% if user.foto_profil %}
+                                <img src="{{ user.foto_profil.url }}" alt="Avatar">
+                            {% else %}
+                                {{ user.nama_tampilan|default:user.username|slice:2|upper }}
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'logout' %}" style="margin-left:15px; color:#dc2626; font-size: 20px;" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            {% if riwayat_list %}
-                {% for item in riwayat_list %}
-                <div class="riwayat-row">
-                    
-                    <div class="history-book-info">
-                        {% if item.buku_digital %}
-                            <img src="{% if item.buku_digital.cover %}{{ item.buku_digital.cover }}{% else %}https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300{% endif %}" 
-                                class="history-book-cover" alt="Cover">
-                            <div class="history-book-details">
-                                <h4>{{ item.buku_digital.judul }}</h4>
-                                <p>{{ item.buku_digital.penulis }} • {{ item.buku_digital.tahun_terbit }}</p>
-                            </div>
-                        {% elif item.jurnal %}
-                            <img src="https://images.unsplash.com/photo-1580536203673-93e150937a54?w=300" 
-                                class="history-book-cover" alt="Cover">
-                            <div class="history-book-details">
-                                <h4>{{ item.jurnal.judul|truncatechars:40 }}</h4>
-                                <p>{{ item.jurnal.penulis }} • {{ item.jurnal.tahun_terbit }}</p>
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="riwayat-container">
 
                     <div class="history-date">
                         {{ item.tanggal_pinjam|date:"d M Y" }}
@@ -145,16 +146,8 @@
                 <span>Progress Baca</span>
                 <span id="modal-progress">-</span>
             </div>
-            <div class="modal-row">
-                <span>EXP Didapat</span>
-                <span id="modal-exp" style="color:#2E7D32;">-</span>
-            </div>
-            
-            <hr class="modal-divider">
-            
-            <button class="modal-close" onclick="closeDetailModal()">Tutup</button>
         </div>
-    </div>
 
+    </div>
 </body>
 </html>

@@ -138,7 +138,6 @@
                         <h4>PENGATURAN AKUN</h4>
                         <h2>Informasi pribadi</h2>
                     </div>
-                </div>
 
                 {% if messages %}
                     {% for message in messages %}
@@ -157,10 +156,12 @@
                         <input type="text" value="{{ user.username }}" disabled style="background:#F0F4F8; color:#8A8A7A; cursor:not-allowed;">
                     </div>
 
-                    <div class="input-group">
-                        <label>Nama Tampilan (Display Name)</label>
-                        <input type="text" name="nama_tampilan" value="{{ user.nama_tampilan }}" required>
+                        <div class="profile-status-badges">
+                            <span class="p-badge active">Anggota aktif</span>
+                            <span class="p-badge count">{{ total_dibaca }} buku dibaca</span>
+                        </div>
                     </div>
+                </div>
 
                     <div class="input-group">
                         <label>Ubah Foto Profil (Max 2MB)</label>
@@ -184,22 +185,26 @@
                         {% endif %}
                     </div>
 
-                    <div class="input-group">
-                        <label>Email</label>
-                        <input type="email" name="email" value="{{ user.email }}">
-                    </div>
+                        <div class="input-group">
+                            <label>Nama Tampilan (Display Name)</label>
+                            <input type="text" name="nama_tampilan" value="{{ user.nama_tampilan }}" required>
+                        </div>
 
-                    <div class="input-group">
-                        <label>Password lama</label>
-                        <input type="password" name="password_lama" id="passLama" placeholder="Kosongkan jika tidak ingin mengubah password">
-                        <i class="far fa-eye toggle-password" onclick="togglePassword('passLama', this)"></i>
-                    </div>
+                        <div class="input-group">
+                            <label>Ubah Foto Profil</label>
+                            <input type="file" name="foto_profil" accept="image/*" style="padding: 9px 16px;">
+                            {% if user.foto_profil %}
+                                <button type="submit" name="hapus_foto" value="1" formnovalidate
+                                        style="margin-top:8px"; background:none; border:none; color:#dc2626; font-size:12px; font-weight:700; cursor:pointer;>
+                                    <i class="fas fa-trash"></i> Hapus Foto Profil
+                                </button>
+                            {% endif %}
+                        </div>
 
-                    <div class="input-group">
-                        <label>Password baru</label>
-                        <input type="password" name="password_baru" id="passBaru" placeholder="Masukkan password baru">
-                        <i class="far fa-eye toggle-password" onclick="togglePassword('passBaru', this)"></i>
-                    </div>
+                        <div class="input-group">
+                            <label>Ubah Background Cover</label>
+                            <input type="file" name="foto_background" accept="image/*" style="padding: 9px 16px;">
+                        </div>
 
                     <div class="form-actions">
                         <a href="{% url 'dashboard' %}" class="btn-cancel">Batal</a>
@@ -209,7 +214,26 @@
             </div>
             {% endif %}
 
-        </div>
+                        <div class="input-group">
+                            <label>Password lama</label>
+                            <input type="password" name="password_lama" id="passLama" placeholder="Kosongkan jika tidak ingin mengubah password">
+                            <i class="far fa-eye toggle-password" onclick="togglePassword('passLama', this)"></i>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Password baru</label>
+                            <input type="password" name="password_baru" id="passBaru" placeholder="Masukkan password baru">
+                            <i class="far fa-eye toggle-password" onclick="togglePassword('passBaru', this)"></i>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="{% url 'dashboard' %}" class="btn-cancel">Batal</a>
+                            <button type="submit" class="btn-save">Simpan perubahan <i class="fas fa-check"></i></button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
 
     </div>
 </body>

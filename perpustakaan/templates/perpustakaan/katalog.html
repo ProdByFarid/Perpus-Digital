@@ -9,11 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1001">
-    <script src="{% static 'perpustakaan/js/script.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'perpustakaan/css/style.css' %}?v=1006">
+    <script src="{% static 'perpustakaan/js/script.js' %}?v=2" defer></script>
     <script src="{% static 'perpustakaan/js/buku.js' %}?v=3" defer></script>
 </head>
-<body class="app-body">
+<body>
 
     <!-- Sidebar -->
     <div class="sidebar">
@@ -35,8 +35,6 @@
                 <h4>{{ user.nama_tampilan|default:user.username }}</h4>
                 <p>Anggota</p>
             </div>
-        </div>
-    </div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -87,22 +85,24 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="katalog-search" placeholder="Cari judul atau penulis..." autocomplete="off">
             </div>
-            <button type="button" class="btn-filter" id="btn-filter" aria-expanded="false" aria-controls="filter-panel">
-                <i class="fas fa-filter"></i> Filter
-            </button>
-        </div>
 
-        <div class="filter-panel" id="filter-panel">
-            <label for="filter-bahasa">Bahasa buku</label>
-            <select id="filter-bahasa">
-                {% for kode, label in bahasa_list %}
-                <option value="{{ kode }}">{{ label }}</option>
+            <div class="filter-panel" id="filter-panel">
+                <label for="filter-bahasa">Bahasa buku</label>
+                <select id="filter-bahasa">
+                    {% for kode, label in bahasa_list %}
+                    <option value="{{ kode }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <label class="filter-check" for="filter-gratis">
+                    <input type="checkbox" id="filter-gratis"> Hanya yang bisa dibaca gratis
+                </label>
+            </div>
+
+            <div class="chip-row" id="chip-row">
+                {% for nilai, label in kategori_list %}
+                <button type="button" class="chip{% if nilai == default_kategori %} active{% endif %}" data-kategori="{{ nilai }}">{{ label }}</button>
                 {% endfor %}
-            </select>
-            <label class="filter-check" for="filter-gratis">
-                <input type="checkbox" id="filter-gratis"> Hanya yang bisa dibaca gratis
-            </label>
-        </div>
+            </div>
 
         <!-- Chip Kategori Bawaan -->
         <div class="chip-row" id="chip-row">
@@ -151,10 +151,9 @@
         <div class="catalog-grid" id="katalog-grid" data-default-kategori="{{ default_kategori }}"></div>
         {{ tersimpan_ids|json_script:"tersimpan-ids" }}
 
-        <div class="grid-status" id="grid-status" aria-live="polite"></div>
-        <div id="grid-sentinel" style="height:1px;"></div>
+            <p class="ol-credit">Data buku dan sampul dari <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>.</p>
+        </div>
 
-        <p class="ol-credit">Data buku dan sampul dari <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>.</p>
     </div>
 
     <!-- Script Google Books API Terbaru dengan API Key milikmu -->

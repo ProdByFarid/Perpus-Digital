@@ -3,6 +3,11 @@ import os
 import random
 import re
 from django.conf import settings
+from datetime import timedelta
+import requests
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -112,6 +117,25 @@ def dashboard(request):
 
 
 @login_required(login_url="login")
+    user = request.user
+    sedang_dipinjam = Peminjaman.objects.filter(user=user, status='Dibaca').count()
+    total_dibaca = Peminjaman.objects.filter(user=user, status='Selesai').count()
+    bacaan_terakhir = Peminjaman.objects.filter(user=user, status='Dibaca').last()
+    User = get_user_model()
+    peringkat = User.objects.filter(exp__gt=request.user.exp).count()+1
+
+    context = {
+        'user': user,
+        'sedang_dipinjam': sedang_dipinjam,
+        'total_dibaca': total_dibaca,
+        'bookmarks': Bookmark.objects.filter(user=user).count(),
+        'bacaan_terakhir': bacaan_terakhir,
+        'peringkat': peringkat,
+    }
+    return render(request, 'perpustakaan/dashboard.html', context)
+
+
+@login_required(login_url='login')
 @ensure_csrf_cookie
 def katalog_view(request):
   kategori_pilihan = request.GET.get("kategori", DEFAULT_KATEGORI)
@@ -374,6 +398,21 @@ def peminjaman_view(request):
       "total_pinjaman": daftar_pinjaman.count(),
   }
   return render(request, "perpustakaan/peminjaman.html", context)
+    #info slot peminjaman
+    batas_pinjam = request.user.max_loans
+    jumlah_aktif = Peminjaman.objects.filter(user=request.user, status='Dibaca').count()
+    sisa_slot = max(batas_pinjam - jumlah_aktif, 0)
+
+    context = {
+        'user': request.user,
+        'daftar_pinjaman': daftar_pinjaman,
+        'total_pinjaman': daftar_pinjaman.count(),
+        'batas_pinjam': batas_pinjam,
+        'jumlah_aktif': jumlah_aktif,
+        'sisa_slot': sisa_slot,
+        'slot_range': range(batas_pinjam),
+    }
+    return render(request, 'perpustakaan/peminjaman.html', context)
 
 
 @login_required(login_url="login")
@@ -417,6 +456,38 @@ def riwayat_view(request):
   riwayat_list = Peminjaman.objects.filter(user=request.user).order_by(
       "-tanggal_pinjam"
   )
+    riwayat_list = Peminjaman.objects.filter(user=request.user).order_by('-tanggal_pinjam')
+    
+    for item in riwayat_list:
+        item.tanggal_kembali = item.tanggal_pinjam + timedelta(days=MASA_PINJAM_HARI)
+
+    context = {
+        'user': request.user,
+        'riwayat_list': riwayat_list,
+        'total_aktivitas': riwayat_list.count(),
+    }
+    return render(request, 'perpustakaan/riwayat.html', context)
+@login_required(login_url='login')
+def leaderboard_view(request):
+    # Ambil semua member, urutkan berdasarkan EXP terbanyak
+    semua_user = CustomUser.objects.filter(is_member=True).order_by('-exp')
+
+    # Pisahkan Top 3 dan sisanya (Rank 4 sampai 10)
+    top_3 = semua_user[:3]
+    other_users = semua_user[3:10]
+
+    # Cari EXP tertinggi untuk menghitung persentase Progress Bar di list bawah
+    max_exp = top_3[0].exp if top_3 else 1 # Hindari pembagian dengan nol
+
+    # Siapkan data untuk Rank 4 ke bawah
+    list_users = []
+    for index, u in enumerate(other_users, start=4):
+        percentage = (u.exp / max_exp) * 100 if max_exp > 0 else 0
+        list_users.append({
+            'rank': index,
+            'user': u,
+            'percentage': percentage
+        })
 
   for item in riwayat_list:
     item.tanggal_kembali = item.tanggal_pinjam + timedelta(
@@ -560,3 +631,68 @@ def profil_user_detail_view(request, username):
       "achievements": [],
   }
   return render(request, "perpustakaan/profil.html", context)
+    user = request.user
+    total_dibaca = Peminjaman.objects.filter(user=user, status='Selesai').count()
+
+    if request.method == 'POST':
+        # Ambil data dari form HTML
+        if request.POST.get('hapus_foto'):
+            if user.foto_profil:
+                user.foto_profil.delete(save=False)
+                user.foto_profil = None
+                user.save()
+                messages.success(request, "Foto Profil berhasil dihapus!")
+            else:
+                messages.error(request, "Tidak ada Foto Profil untuk dihapus.")
+            return redirect('profil')
+        nama_baru = request.POST.get('nama_tampilan')
+        email_baru = request.POST.get('email')
+        pass_lama = request.POST.get('password_lama')
+        pass_baru = request.POST.get('password_baru')
+        
+        # Ambil file upload gambar
+        foto_profil = request.FILES.get('foto_profil')
+        foto_bg = request.FILES.get('foto_background')
+
+        perubahan_terjadi = False
+
+        # Update Nama & Email
+        if nama_baru and nama_baru != user.nama_tampilan:
+            user.nama_tampilan = nama_baru
+            perubahan_terjadi = True
+        
+        if email_baru and email_baru != user.email:
+            user.email = email_baru
+            perubahan_terjadi = True
+
+        # Update Foto (Hanya jika ada file baru yang diupload)
+        if foto_profil:
+            user.foto_profil = foto_profil
+            perubahan_terjadi = True
+            
+        if foto_bg:
+            user.foto_background = foto_bg
+            perubahan_terjadi = True
+
+        # Simpan perubahan teks/foto
+        if perubahan_terjadi:
+            user.save()
+            messages.success(request, "Perubahan Berhasil!")
+
+        # Update Password Khusus
+        if pass_lama and pass_baru:
+            if user.check_password(pass_lama):
+                user.set_password(pass_baru)
+                user.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Perubahan Berhasil! (Password diubah)")
+            else:
+                messages.error(request, "Gagal: Password lama salah!")
+                
+        return redirect('profil')
+
+    context = {
+        'user': user,
+        'total_dibaca': total_dibaca,
+    }
+    return render(request, 'perpustakaan/profil.html', context)
